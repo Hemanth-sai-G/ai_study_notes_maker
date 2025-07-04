@@ -84,8 +84,7 @@ An intelligent web application that transforms various file formats into compreh
 ```
 ai-study-notes-maker/
 │
-├── app.py 
-|__config.py                # Main Streamlit application
+├── app.py               # Main Streamlit application
 ├── requirements.txt       # Python dependencies
 ├── README.md             # Project documentation
 │
