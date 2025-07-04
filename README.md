@@ -168,7 +168,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **G.V.V.N.HEMANTHSAI** - hemanth.23bce9834@vitapstudent.ac.in
 
-Project Link: 
+Project Link: https://github.com/Hemanth-sai-G/ai_study_notes_maker.git
 
 ## 🔮 Future Enhancements
 
