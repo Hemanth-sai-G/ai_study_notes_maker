@@ -166,9 +166,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-**Your Name** - your.email@example.com
+**G.V.V.N.HEMANTHSAI** - hemanth.23bce9834@vitapstudent.ac.in
 
-Project Link: [https://github.com/yourusername/ai-study-notes-maker](https://github.com/yourusername/ai-study-notes-maker)
+Project Link: 
 
 ## 🔮 Future Enhancements
 
