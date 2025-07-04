@@ -1,0 +1,36 @@
+# Core ML and NLP libraries
+transformers>=4.21.0
+torch>=1.12.0
+nltk>=3.7
+spacy>=3.4.0
+
+# Streamlit for web interface
+streamlit>=1.25.0
+
+# PDF processing
+PyMuPDF>=1.20.0
+reportlab>=3.6.0
+
+# Audio/Video processing
+openai-whisper>=20230314
+moviepy>=1.0.3
+pydub>=0.25.1
+
+# Document processing
+python-docx>=0.8.11
+
+# Standard data processing
+numpy>=1.21.0
+pandas>=1.4.0
+
+# Additional utilities that might be needed
+Pillow>=9.0.0
+requests>=2.28.0
+typing-extensions>=4.0.0
+
+# For spaCy language models (choose based on your needs)
+# Run: python -m spacy download en_core_web_sm
+# en-core-web-sm>=3.4.0
+
+# Optional: For better performance with audio processing
+# ffmpeg-python>=0.2.0
