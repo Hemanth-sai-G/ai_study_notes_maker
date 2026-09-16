@@ -1,3 +1,10 @@
 .venv/
 __pycache__/
 *.pyc
+frontend/node_modules/
+frontend/dist/
+backend/data/uploads/
+backend/data/extracted/
+backend/data/chroma/
+backend/data/exports/
+backend/data/documents.json
