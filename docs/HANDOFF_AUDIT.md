@@ -13,6 +13,7 @@
 - [x] Documentation was cross-checked against HEAD `1ebf78b`, current source, requirements, Git status, and the local data ignore rules.
 - [x] Immediate next task is unambiguous: start Phase 4 with a tested semantic retrieval API/evidence contract.
 - [x] `AI_HANDOFF.md` tells the next agent to inspect the repository before changing it.
+- [x] Durable instructions explicitly require `PROJECT_GUIDE.md` to be updated at the end of every completed phase.
 
 ## Audit limitation
 

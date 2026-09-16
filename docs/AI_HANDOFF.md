@@ -62,6 +62,10 @@ This is not blanket permission to modify these files; inspect and change only wh
 
 Run the current verified commands in [TESTING.md](TESTING.md), then add/run focused retrieval tests. Test both exact-term and semantic-paraphrase queries with controlled fixture data. Run `npm run build` in `frontend/` after UI changes.
 
+## Required Phase Closeout
+
+Do not call Phase 4 complete until `docs/PROJECT_GUIDE.md` is updated in the same change set. Follow the format established for Phases 0-3: completion log, files to know, flow diagram, explanation of concepts/models, verification, limitations, roadmap status, and exact next implementation step.
+
 ## Do Not Do
 
 - Do not replace ChromaDB, MiniLM, React/FastAPI, or local storage without user approval.

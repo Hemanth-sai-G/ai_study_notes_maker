@@ -12,6 +12,8 @@
 **Risks:** New model download/CPU cost; score scales differ; metadata schema must remain compatible.
 **Not included:** Ollama response generation, chat memory, quiz/notes output.
 
+**Documentation closeout (required):** Before marking this phase complete, update `docs/PROJECT_GUIDE.md` with the actual retrieval architecture, files, models, verification, limitations, review talking points, and the exact Phase 5 next step.
+
 ## Phase 5 - Grounded chat and citations
 
 **Objective:** Generate a concise answer with local Ollama, only from Phase 4 evidence, with citations.
@@ -24,6 +26,8 @@
 **Risks:** Model hallucination, latency/VRAM, prompt injection within uploads.
 **Not included:** Authentication, translation, audio/video.
 
+**Documentation closeout (required):** Update `docs/PROJECT_GUIDE.md` with actual Ollama model/setup, prompt-grounding/citation flow, tests, limitations, and the exact Phase 6 next step.
+
 ## Phase 6 - Study tools and exports
 
 **Objective:** Add grounded notes, summaries, explanations, flashcards, quizzes, document comparison, and exports.
@@ -33,12 +37,16 @@
 **Risks:** Scope expansion and duplicate prompt logic.
 **Not included:** Evaluation dashboard/hardening.
 
+**Documentation closeout (required):** Update `docs/PROJECT_GUIDE.md` with each completed study mode, source-grounding behavior, exports, verification, and the exact Phase 7 next step.
+
 ## Phase 7 - Evaluation, hardening, and demonstration
 
 **Objective:** Demonstrate quality and make the local app reproducible.
 **Approach:** Create labelled retrieval fixtures; measure retrieval relevance/latency/citation coverage; add tests, errors, secure deletion/validation review, documentation, demo script, and packaging instructions.
 **Acceptance:** Reproducible setup, objective results, stable demo, complete docs.
 **Risks:** Evaluation requires representative academic documents and labels.
+
+**Documentation closeout (required):** Finalize `docs/PROJECT_GUIDE.md` with evaluation results, final run/setup instructions, demonstration flow, known limitations, and maintenance guidance.
 
 ## Later / requires user decisions
 

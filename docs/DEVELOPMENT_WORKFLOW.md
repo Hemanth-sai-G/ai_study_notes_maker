@@ -7,7 +7,7 @@
 5. Make small, focused edits that follow the existing location pattern: APIs in `api/`, data contracts in `models/`, business logic in `services/`, settings in `core/`, UI behavior in `App.tsx` and CSS in `styles.css`.
 6. Add a reusable test when changing behavior. For current code, first add an appropriate test harness rather than relying forever on ad hoc scripts.
 7. Verify compilation, focused behavior, and frontend build. Inspect a live browser UI when layout/user interaction changes.
-8. Update `PROJECT_GUIDE.md` and handoff docs when a phase, architecture, decision, run command, or known limitation changes.
+8. At the end of every completed phase, update `PROJECT_GUIDE.md` before declaring the phase complete. Add the completed work, files to know, end-to-end flow, models/libraries used, verification, limitations, review/interview explanation where useful, and the exact next phase. Then update handoff docs when their recorded state changes.
 9. Refactor only when the current feature requires it or a tested seam is clearly needed. Do not redesign the active stack.
 10. Stop and ask the user before changing scope: cloud services, model family, authentication, audio/video, translation, destructive local-data operations, or major dependency/platform shifts.
 

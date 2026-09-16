@@ -19,6 +19,7 @@ Read `docs/AI_HANDOFF.md`, then the listed handoff documents, before coding. Ins
 - Validate input on the FastAPI boundary and return `HTTPException` with a user-safe `detail` message.
 - Do not commit files in `backend/data/`, model caches, `frontend/node_modules/`, builds, virtual environments, or personal uploaded material.
 - Before completing work, run `python -m compileall -q backend/app`, `npm run build` from `frontend/`, and focused API/service verification appropriate to the changed feature. Document unrun tests or failures honestly.
+- At the end of **every completed implementation phase**, update `docs/PROJECT_GUIDE.md`: mark the phase complete, record implemented files/flow/models, verification, limitations, review talking points where relevant, and set the exact next phase. Update the handoff documents too when their recorded state changes.
 
 ## Special care / ask first
 
