@@ -14,7 +14,7 @@ The active app is React/Vite + FastAPI. Phase 2 stores local source files/extrac
 
 ## Immediate Next Task
 
-Phase 4 is complete on branch `main2`. The exact next task is Phase 5: confirm the local Ollama/Qwen model and implement grounded generation using only the evidence returned by `POST /api/v1/retrieval/query`.
+Phase 4 is committed on branch `main2` as `f4ab175`. Phase 5 is in progress with local `qwen2.5:3b`: the evidence-only generation service, endpoint, code-derived citations, tests, and UI are present. Start Ollama and download the model before live answer verification.
 
 ## Phase 4 Delivered
 

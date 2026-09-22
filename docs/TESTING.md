@@ -49,7 +49,7 @@ Set-Location frontend
 npm run build
 ```
 
-`npm run build` performs TypeScript checking and a Vite production build. The last known build passed. The committed retrieval fixtures run without user documents or model downloads: ten tests pass and one real-stack test is skipped by default.
+`npm run build` performs TypeScript checking and a Vite production build. The last known build passed. The Phase 4/5 fixtures run without user documents or model downloads: fifteen deterministic tests pass and one real-stack retrieval test is skipped by default.
 
 After indexing at least one local document, run the optional real-stack retrieval check separately:
 
@@ -59,6 +59,17 @@ $env:STUDYMATE_RUN_REAL_INTEGRATION = "1"
 ```
 
 This check uses the local ChromaDB collection and cache-only MiniLM model. It must not be treated as portable because `backend/data/` and model caches are intentionally excluded from Git.
+
+## Phase 5 local Ollama setup
+
+The grounded-chat service expects local Ollama at `http://127.0.0.1:11434` with `qwen2.5:3b` installed. Before live answer testing, run:
+
+```powershell
+ollama serve
+ollama pull qwen2.5:3b
+```
+
+The automated generation fixtures use a fake generator, so they run while Ollama is stopped. A real chat check also requires indexed local documents and the local model.
 
 Focused TestClient scripts were executed manually for PDF/DOCX/PPTX/TXT/PNG ingestion, extension rejection, extracted-text persistence, deterministic Chroma persistence, actual MiniLM encoding, and real local index creation. They are not saved as test files; recreate these as formal tests before making major retrieval changes.
 

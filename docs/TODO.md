@@ -2,7 +2,7 @@
 
 ## Critical
 
-- **Implement Phase 5 grounded chat and citations.** Current state: Phase 4 returns provenance-rich local evidence but Ollama is not installed/integrated. Relevant: new generation service/API/UI. Dependencies: the Phase 4 retrieval contract and the user's confirmed local Qwen/Ollama model. Acceptance: answers use only supplied evidence and display deterministic code-derived citations.
+- **Complete Phase 5 live verification.** Current state: the grounded chat service/API/UI and code-derived citations are implemented for local `qwen2.5:3b`, but Ollama was not running during implementation. Start Ollama, pull the model, then verify answer grounding and citations against indexed local documents. Acceptance: answers use only supplied evidence and display deterministic code-derived citations.
 
 ## High Priority
 

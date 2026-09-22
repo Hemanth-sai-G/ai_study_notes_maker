@@ -3,10 +3,10 @@
 ## Snapshot
 
 - Branch: `main2`.
-- HEAD: `b6ec180` - `docs: require project guide updates per phase`.
-- Working tree contains the uncommitted Phase 4 implementation and closeout documentation.
+- HEAD: `f4ab175` - `phase-4 advanced local retrieval`.
+- Working tree contains the uncommitted Phase 5 implementation and checkpoint documentation.
 - Current completed implementation: Phases 0-4 of the project roadmap.
-- Exact next task: Phase 5 grounded local chat and citations, after the user confirms the Ollama/Qwen model.
+- Current work in progress: Phase 5 grounded local chat and citations using local `qwen2.5:3b`. Live verification awaits a running Ollama service and downloaded model.
 
 ## Completed
 
@@ -14,6 +14,7 @@
 2. **Ingestion (Phase 2):** local PDF, DOCX, PPTX, TXT, PNG/JPG/JPEG/WEBP upload; 50 MB limit; UUID storage; extracted-text persistence; JSON catalogue; local Library display.
 3. **Knowledge base (Phase 3):** paragraph-oriented chunks, `all-MiniLM-L6-v2` embeddings, ChromaDB persistence, source metadata, re-index endpoint and Library action.
 4. **Advanced retrieval (Phase 4):** semantic Chroma retrieval, local BM25, score fusion, filters, conservative rewriting, deterministic reranking, duplicate-aware word-budgeted context selection, provenance-rich evidence API, and Workspace evidence search.
+5. **Grounded chat (Phase 5, in progress):** evidence-only Ollama prompt, code-derived citations, session-only in-memory context, safe unavailable-model handling, and Workspace answer display.
 
 ## Current local data state
 
@@ -21,7 +22,7 @@ The live local data folders are ignored by Git. At the last verified Phase 3 run
 
 ## Recent meaningful changes
 
-The uncommitted Phase 4 change set adds `api/retrieval.py`, `models/retrieval.py`, `services/retrieval.py`, focused tests, route registration, and the React evidence-search panel. It preserves the existing Chroma metadata contract and does not call any cloud service or LLM.
+Phase 4 was committed as `f4ab175`. The uncommitted Phase 5 change set adds the generation model/service/API, local Ollama configuration, focused tests, and the grounded-answer Workspace UI. It preserves the existing Chroma metadata contract and does not call any cloud service.
 
 ## Recently changed source areas
 
@@ -31,6 +32,9 @@ The uncommitted Phase 4 change set adds `api/retrieval.py`, `models/retrieval.py
 - `backend/app/core/config.py`
 - `backend/app/{api,models,services}/retrieval.py`
 - `backend/tests/test_retrieval*.py`
+- `backend/app/{api,models,services}/generation.py`
+- `backend/app/api/chat.py`
+- `backend/tests/test_generation.py`
 - `frontend/src/{App.tsx,styles.css}`
 - `backend/requirements.txt`, `frontend/package*.json`
 
@@ -39,7 +43,7 @@ The uncommitted Phase 4 change set adds `api/retrieval.py`, `models/retrieval.py
 Passing checks recorded during implementation:
 
 - Python compilation: `python -m compileall -q backend/app`.
-- Ten deterministic Phase 4 retrieval tests pass; the optional real FastAPI/ChromaDB integration check is skipped until `STUDYMATE_RUN_REAL_INTEGRATION=1` is set after indexing documents.
+- Fifteen deterministic Phase 4/5 tests pass; the optional real FastAPI/ChromaDB integration check is skipped until `STUDYMATE_RUN_REAL_INTEGRATION=1` is set after indexing documents.
 - Focused upload/extraction checks for PDF, DOCX, PPTX, TXT, PNG plus unsupported-file rejection.
 - Deterministic ChromaDB persistence check using a fake embedding model.
 - Actual `all-MiniLM-L6-v2` cache-only embedding run and real local indexing: 2 documents / 15 chunks.
@@ -54,7 +58,7 @@ There is a committed Python `unittest` suite for Phase 4 retrieval. Extraction/i
 - The Hugging Face cache can warn about Windows symlink support. The embedding model works without symlinks, using more disk space.
 - Tesseract executable is not known to be installed. Image records can be saved but show `OCR needed` and are not indexable until OCR produces text.
 - On a fresh machine, the first model download requires internet; normal runtime indexing deliberately uses `local_files_only=True`.
-- Phase 4 is retrieval only: Ollama, grounded answers/citations, chat memory, study tools, translation, audio/video, and authentication remain deferred.
+- Phase 5 code is implemented and unit-tested, but the installed Ollama CLI could not connect to a running local service. Run `ollama serve` and `ollama pull qwen2.5:3b` before live answer verification. Study tools, translation, audio/video, and authentication remain deferred.
 
 ## Must not be lost
 

@@ -5,7 +5,7 @@
 **Name:** StudyMate AI (the proposal also describes it as an Advanced RAG-Powered Learning Assistant).
 **Purpose:** Help students turn their own course materials into source-grounded learning support.
 **Target users:** Students using local PDFs, Word documents, PowerPoint slides, text files, and eventually images/scanned notes.
-**Current status:** Phases 0-4 are complete: polished local UI, document ingestion, persistent semantic indexing, and inspectable hybrid evidence retrieval. The application does not yet generate LLM answers.
+**Current status:** Phases 0-4 are complete. Phase 5 implementation is in progress: the app has an evidence-only local Ollama generation layer and code-derived citations, pending live verification with the downloaded Qwen model.
 
 ## B. Technology stack
 
@@ -17,7 +17,7 @@
 | Document processing | PyMuPDF (`fitz`), python-docx, python-pptx, Pillow, optional pytesseract/Tesseract |
 | Semantic index | Sentence Transformers, `all-MiniLM-L6-v2`, ChromaDB |
 | Data storage | Local filesystem, JSON document catalogue, persistent local ChromaDB |
-| LLM/API | Ollama + Qwen planned; not yet implemented. No cloud API is configured. |
+| LLM/API | Local Ollama at `127.0.0.1:11434` using `qwen2.5:3b`; code is implemented but the local service/model needs setup for live verification. No cloud API is configured. |
 | Authentication | None; explicitly deferred. |
 | Tests | Python `unittest` fixture suite for Phase 4 retrieval, optional real-stack integration check, and `npm run build`. |
 
@@ -55,6 +55,9 @@ React UI -> /api/v1/documents/index -> chunker -> MiniLM embedding model
 React UI -> /api/v1/retrieval/query -> local query rewriting + MiniLM/Chroma semantic search
   -> in-memory BM25 -> score fusion -> lexical reranking/context selection
   -> ranked evidence, context, and provenance diagnostics
+
+React UI -> /api/v1/chat/answer -> Phase 4 retrieval evidence only -> local Ollama/Qwen
+  -> code-derived citations from the same evidence metadata -> grounded answer
 ```
 
 The document JSON record contains UUID storage name, original display name, type, size, page/slide count, extracted text pointer, extraction state, indexing state, chunk count, and messages. Chroma chunks contain `document_id`, document name/type, `chunk_index`, page/slide, section title, text, and an embedding.
@@ -70,7 +73,8 @@ The document JSON record contains UUID storage name, original display name, type
 | Indexing | `knowledge_base.py`, `/documents/index` | MiniLM model must exist in local cache. Indexing replaces old chunks per document. Real run verified 15 chunks. |
 | Library UI | `frontend/src/App.tsx` | No document deletion/details/re-index-per-item. Build verified. |
 | Hybrid evidence retrieval | `api/retrieval.py`, `models/retrieval.py`, `services/retrieval.py` | Semantic + BM25 retrieval, filters, deterministic reranking, and budgeted evidence/context; no answer generation. |
-| Generation/study tools | Not implemented | Planned Phases 5-6. |
+| Grounded chat | `api/chat.py`, `models/generation.py`, `services/generation.py` | Uses retrieval before local Ollama, generates citations in code, and stores limited session context only in memory. Live model verification remains. |
+| Study tools | Not implemented | Planned Phase 6. |
 
 ## F. Development conventions
 

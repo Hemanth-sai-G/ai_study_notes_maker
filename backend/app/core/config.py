@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     embedding_model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
     chunk_size_words: int = 180
     chunk_overlap_words: int = 35
+    ollama_base_url: str = "http://127.0.0.1:11434"
+    ollama_model: str = "qwen2.5:3b"
+    ollama_timeout_seconds: int = 120
 
     @property
     def uploads_dir(self) -> Path:

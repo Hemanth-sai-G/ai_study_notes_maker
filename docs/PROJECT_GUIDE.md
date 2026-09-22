@@ -253,6 +253,35 @@ Question and optional filters
 
 BM25 is calculated in memory from the Chroma-filtered chunks at query time, so it is simple and local but may need a persisted index for very large libraries. The real integration check requires an indexed local document and the MiniLM cache. Phase 4 does not include Ollama, answers, citations, chat history, authentication, translation, audio, or video.
 
+### Phase 5 checkpoint - Grounded local chat (in progress)
+
+- Added `POST /api/v1/chat/answer`. It always uses the Phase 4 retrieval service first; Ollama never reads ChromaDB or uploaded files directly.
+- The selected local model is `qwen2.5:3b`, requested through local Ollama at `http://127.0.0.1:11434`. No cloud API or Python Ollama dependency was added.
+- The model receives labelled evidence passages only. The prompt rejects outside knowledge and instructions embedded in source text, and provides a fixed insufficient-evidence response.
+- Citations are constructed in Python from retrieved metadata. The model cannot invent document names, pages/slides, sections, or chunk IDs.
+- Conversation context is a four-turn, in-memory session history. It is never saved and disappears when the backend stops.
+- The Workspace can display a grounded answer and its verified sources. The existing retrieval inspector remains available for review.
+
+### Phase 5: files to know
+
+| File | What it does |
+| --- | --- |
+| `backend/app/models/generation.py` | Validates chat requests and defines grounded answer/citation responses. |
+| `backend/app/services/generation.py` | Retrieves evidence, creates the evidence-only prompt, calls local Ollama, and creates citations. |
+| `backend/app/api/chat.py` | Provides the local answer API and safe Ollama error messages. |
+| `backend/tests/test_generation.py` | Tests grounding, citations, no-evidence behavior, session memory, and unavailable Ollama. |
+
+### Phase 5 setup still required
+
+Ollama is installed but was not running during implementation. Before live answer testing, run the following in PowerShell:
+
+```powershell
+ollama serve
+ollama pull qwen2.5:3b
+```
+
+Then index at least one local document and ask a question in the Workspace. The one-time model download stays local; all study material and inference remain on the device.
+
 ## 8. Phased build roadmap
 
 Each phase is intentionally self-contained. We will stop at the end of a phase, update this guide, and resume from the next unchecked phase when development time is available.
@@ -264,7 +293,7 @@ Each phase is intentionally self-contained. We will stop at the end of a phase, 
 | 2 | Document ingestion | Complete - uploads are stored locally and PDF, DOCX, PPTX, and TXT text/metadata are extracted. Images are validated and OCR-ready. |
 | 3 | Local knowledge base | Complete - semantic chunks, local MiniLM embeddings, and persistent ChromaDB indexing work for uploaded documents. |
 | 4 | Advanced retrieval | Complete - backend retrieval pipeline, provenance-rich API, opt-in real-stack test, and React evidence-query UI. |
-| 5 | Grounded chat and citations | Ollama generates source-grounded answers with page/slide citations and conversation memory. |
+| 5 | Grounded chat and citations | In progress - evidence-only Ollama service, code-derived citations, session-only memory, UI, and tests are implemented; live model verification remains. |
 | 6 | Study tools | Notes, summaries, explanations, quizzes, flashcards, comparisons, and exports use the same evidence pipeline. |
 | 7 | Evaluation and hardening | Evaluation dashboard, tests, error handling, performance tuning, local security controls, documentation, and demo preparation. |
 | Later | Deferred features | Audio/video ingestion, authentication/multi-user access, and response translation. |

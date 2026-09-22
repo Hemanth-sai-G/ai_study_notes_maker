@@ -60,6 +60,16 @@ Alternatives considered: A downloaded local cross-encoder reranker was deferred 
 Consequences: Retrieval is fully local and preserves provenance, but BM25 is rebuilt from filtered chunks per query and may need a persisted index for very large libraries.
 Affected files/components: `backend/app/services/retrieval.py`, `backend/app/models/retrieval.py`, `backend/app/api/retrieval.py`, `frontend/src/App.tsx`.
 
+## Decision: Local Ollama Qwen generation baseline
+
+Status: Active
+Date/phase: Phase 5
+Decision: Use local Ollama with `qwen2.5:3b` for the first grounded-answer implementation.
+Reason: The compact 3B model is appropriate for the user's 6 GB RTX 4050 while retaining enough capability for concise, source-grounded educational answers.
+Alternatives considered: Larger Qwen variants may improve quality but need more memory and latency; cloud APIs remain out of scope.
+Consequences: Ollama and the model require one-time local setup. The application sends only retrieved context to `127.0.0.1`, while citations remain code-derived from Phase 4 metadata.
+Affected files/components: `backend/app/core/config.py`, `backend/app/services/generation.py`, `backend/app/api/chat.py`, `frontend/src/App.tsx`.
+
 ## Decision: Phase-by-phase implementation and documentation
 
 Status: Active
