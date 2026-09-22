@@ -50,6 +50,16 @@ Alternatives considered: None recorded.
 Consequences: Future retrieval/generation code must preserve this metadata.
 Affected files/components: `document_extractor.py`, `chunking.py`, `knowledge_base.py`.
 
+## Decision: Transparent hybrid retrieval baseline
+
+Status: Active
+Date/phase: Phase 4
+Decision: Combine cache-only MiniLM/Chroma semantic retrieval with local in-memory BM25, deterministic weighted fusion, and lexical reranking before Phase 5 generation.
+Reason: Semantic similarity and exact terminology complement each other, while a deterministic reranker keeps the initial retrieval behavior inspectable, lightweight, and testable on the target hardware.
+Alternatives considered: A downloaded local cross-encoder reranker was deferred as an optional quality experiment after the baseline is evaluated.
+Consequences: Retrieval is fully local and preserves provenance, but BM25 is rebuilt from filtered chunks per query and may need a persisted index for very large libraries.
+Affected files/components: `backend/app/services/retrieval.py`, `backend/app/models/retrieval.py`, `backend/app/api/retrieval.py`, `frontend/src/App.tsx`.
+
 ## Decision: Phase-by-phase implementation and documentation
 
 Status: Active

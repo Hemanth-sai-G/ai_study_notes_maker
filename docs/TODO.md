@@ -2,11 +2,10 @@
 
 ## Critical
 
-- **Implement Phase 4 Advanced RAG retrieval.** Current state: Chroma stores vectors but no query endpoint exists. Relevant: `knowledge_base.py`, new retrieval services/routes, `frontend/src/App.tsx`. Dependencies: indexed text and MiniLM cache. Next step: implement vector query, BM25, score fusion, filters, query rewriting, reranking, and context selection. Acceptance: one API returns ranked, metadata-rich evidence for a query without LLM generation.
+- **Implement Phase 5 grounded chat and citations.** Current state: Phase 4 returns provenance-rich local evidence but Ollama is not installed/integrated. Relevant: new generation service/API/UI. Dependencies: the Phase 4 retrieval contract and the user's confirmed local Qwen/Ollama model. Acceptance: answers use only supplied evidence and display deterministic code-derived citations.
 
 ## High Priority
 
-- **Implement Phase 5 grounded chat/citations.** Current state: Ollama is planned but not installed/integrated. Relevant: new generation service/API/UI. Dependencies: Phase 4 evidence contract and Ollama/Qwen local model. Acceptance: answers only from retrieved evidence and show deterministic source citations.
 - **Add automated tests.** Current state: only ad hoc commands were run. Relevant: new `backend/tests/`, frontend test configuration if chosen. Dependencies: none. Acceptance: reproducible tests cover extraction, chunking, indexing, and retrieval edge cases.
 - **Remove tracked temporary pip logs.** Current state: `tmp/phase3-pip-*.log` are in HEAD. Relevant: `tmp/`. Dependencies: user approval for cleanup commit. Acceptance: logs removed and `tmp/` ignored or otherwise handled.
 

@@ -203,6 +203,56 @@ Extracted UTF-8 text from Phase 2
 
 **Does Phase 3 answer questions already?** No. It prepares the searchable knowledge base. Phase 4 retrieves evidence using semantic search plus BM25, then reranks it before Phase 5 sends it to Ollama.
 
+### Phase 4 - Advanced retrieval (complete)
+
+- Added `POST /api/v1/retrieval/query`. It returns local evidence only; it never calls an LLM or creates an answer.
+- Semantic search embeds the question with the existing cache-only `all-MiniLM-L6-v2` model and queries the persistent ChromaDB chunk collection.
+- A local BM25-style keyword scorer evaluates the same filtered chunks. Deterministic weighted fusion combines semantic and keyword results by stable chunk ID.
+- The service normalizes a question conservatively, supports document-ID and file-type filters (including their logical AND), reranks with transparent lexical signals, suppresses near-duplicate passages, and respects the requested context word budget.
+- Each evidence item retains text, rank, score, document ID/name, file type, page or slide, section title, chunk ID, and chunk index. Diagnostics expose the original and rewritten query and counts at each retrieval stage.
+- The Workspace has an evidence-query panel with document/type filters, ranked source cards, provenance, safe errors, and expandable diagnostics. It clearly labels this as retrieval rather than answer generation.
+
+### Phase 4: files to know
+
+| File | What it does |
+| --- | --- |
+| `backend/app/models/retrieval.py` | Validates retrieval requests and defines the provenance-rich response contract. |
+| `backend/app/api/retrieval.py` | Exposes the safe local `POST /api/v1/retrieval/query` endpoint. |
+| `backend/app/services/retrieval.py` | Runs query rewriting, semantic search, BM25 scoring, fusion, reranking, de-duplication, and context selection. |
+| `backend/tests/test_retrieval.py` | Deterministic tests for ranking, filters, provenance, budgets, and invalid/empty inputs. |
+| `backend/tests/test_retrieval_integration.py` | Optional check against the real local FastAPI/ChromaDB stack after indexing documents. |
+| `frontend/src/App.tsx` | Provides the Workspace evidence-search interaction and displays retrieved sources. |
+
+### Phase 4 flow
+
+```text
+Question and optional filters
+  -> FastAPI validates the input
+  -> local query normalization (no LLM)
+  -> MiniLM embeds the search query from local cache
+  -> ChromaDB returns semantic candidates with provenance
+  -> local BM25 scores the same filtered chunks
+  -> weighted fusion and lexical reranking
+  -> duplicate-aware, word-budgeted context selection
+  -> UI receives labelled evidence and diagnostics
+```
+
+### Explain it in a review
+
+**Why hybrid retrieval?** Semantic vectors find related meanings, while BM25 gives exact technical terms a strong signal. Combining both handles more question styles than either method alone.
+
+**Why keep provenance at every stage?** Phase 5 can make citations from code-owned document/page/slide metadata instead of trusting an LLM to invent a source.
+
+**Why is the reranker not another AI model?** The initial local reranker is deterministic and inspectable: it rewards term coverage, exact phrases, and heading matches. This keeps Phase 4 lightweight and testable; a cross-encoder is a later optional quality experiment, not a hidden dependency.
+
+**What does Phase 4 produce?** Ranked source passages and compact context, not a conversational answer. Phase 5 is the first phase that may send this evidence to the locally installed Ollama model.
+
+### Phase 4 verification and limitations
+
+`python -m compileall -q backend/app` and the focused `unittest` suite pass: ten deterministic retrieval tests pass and one real-stack test is intentionally skipped unless `STUDYMATE_RUN_REAL_INTEGRATION=1` is set after indexing local data. The frontend production build passes with the current Windows dependencies.
+
+BM25 is calculated in memory from the Chroma-filtered chunks at query time, so it is simple and local but may need a persisted index for very large libraries. The real integration check requires an indexed local document and the MiniLM cache. Phase 4 does not include Ollama, answers, citations, chat history, authentication, translation, audio, or video.
+
 ## 8. Phased build roadmap
 
 Each phase is intentionally self-contained. We will stop at the end of a phase, update this guide, and resume from the next unchecked phase when development time is available.
@@ -213,7 +263,7 @@ Each phase is intentionally self-contained. We will stop at the end of a phase, 
 | 1 | Project shell and polished UI | Complete - React interface starts locally and communicates with the API. |
 | 2 | Document ingestion | Complete - uploads are stored locally and PDF, DOCX, PPTX, and TXT text/metadata are extracted. Images are validated and OCR-ready. |
 | 3 | Local knowledge base | Complete - semantic chunks, local MiniLM embeddings, and persistent ChromaDB indexing work for uploaded documents. |
-| 4 | Advanced retrieval | BM25 + semantic hybrid search, metadata filters, query rewriting, reranking, and context selection return ranked evidence. |
+| 4 | Advanced retrieval | Complete - backend retrieval pipeline, provenance-rich API, opt-in real-stack test, and React evidence-query UI. |
 | 5 | Grounded chat and citations | Ollama generates source-grounded answers with page/slide citations and conversation memory. |
 | 6 | Study tools | Notes, summaries, explanations, quizzes, flashcards, comparisons, and exports use the same evidence pipeline. |
 | 7 | Evaluation and hardening | Evaluation dashboard, tests, error handling, performance tuning, local security controls, documentation, and demo preparation. |
@@ -253,4 +303,4 @@ To prepare a production frontend bundle, run `npm run build` in `frontend/`. Vit
 
 ## 11. Next implementation step
 
-Phase 4: implement Advanced RAG retrieval - semantic similarity search plus BM25 keyword retrieval, score fusion, metadata filtering, query rewriting, reranking, and optimized source context.
+Phase 5: define the local Ollama/Qwen setup and implement grounded answer generation using only the Phase 4 evidence contract. Do not begin generation until the local model choice is confirmed and available.

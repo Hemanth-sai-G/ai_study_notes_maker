@@ -5,7 +5,7 @@
 **Name:** StudyMate AI (the proposal also describes it as an Advanced RAG-Powered Learning Assistant).
 **Purpose:** Help students turn their own course materials into source-grounded learning support.
 **Target users:** Students using local PDFs, Word documents, PowerPoint slides, text files, and eventually images/scanned notes.
-**Current status:** Phases 0-3 are complete: polished local UI, document ingestion, and persistent semantic indexing. The application cannot yet retrieve evidence for a question or generate LLM answers.
+**Current status:** Phases 0-4 are complete: polished local UI, document ingestion, persistent semantic indexing, and inspectable hybrid evidence retrieval. The application does not yet generate LLM answers.
 
 ## B. Technology stack
 
@@ -19,7 +19,7 @@
 | Data storage | Local filesystem, JSON document catalogue, persistent local ChromaDB |
 | LLM/API | Ollama + Qwen planned; not yet implemented. No cloud API is configured. |
 | Authentication | None; explicitly deferred. |
-| Tests | No framework. Focused Python/TestClient scripts and `npm run build` were run manually. |
+| Tests | Python `unittest` fixture suite for Phase 4 retrieval, optional real-stack integration check, and `npm run build`. |
 
 ## C. Repository structure
 
@@ -29,7 +29,7 @@ frontend/                 Active React/Vite UI
   src/styles.css          Custom styling
 backend/
   app/main.py             FastAPI app/router/lifespan
-  app/api/                HTTP endpoints (health, documents)
+  app/api/                HTTP endpoints (health, documents, retrieval)
   app/models/             Pydantic API models
   app/services/           Extraction, catalogue, chunking, vector indexing
   data/                   Local runtime data; excluded from Git
@@ -51,6 +51,10 @@ React UI -> /api/v1/documents/upload -> FastAPI validation/extraction
 
 React UI -> /api/v1/documents/index -> chunker -> MiniLM embedding model
   -> ChromaDB backend/data/chroma/ (vectors + text + provenance metadata)
+
+React UI -> /api/v1/retrieval/query -> local query rewriting + MiniLM/Chroma semantic search
+  -> in-memory BM25 -> score fusion -> lexical reranking/context selection
+  -> ranked evidence, context, and provenance diagnostics
 ```
 
 The document JSON record contains UUID storage name, original display name, type, size, page/slide count, extracted text pointer, extraction state, indexing state, chunk count, and messages. Chroma chunks contain `document_id`, document name/type, `chunk_index`, page/slide, section title, text, and an embedding.
@@ -65,7 +69,8 @@ The document JSON record contains UUID storage name, original display name, type
 | Semantic chunks | `chunking.py` | ~180-word target and 35-word overlap; heading heuristic is simple. Deterministic test verified page boundary handling. |
 | Indexing | `knowledge_base.py`, `/documents/index` | MiniLM model must exist in local cache. Indexing replaces old chunks per document. Real run verified 15 chunks. |
 | Library UI | `frontend/src/App.tsx` | No document deletion/details/re-index-per-item. Build verified. |
-| Retrieval/generation/study tools | Not implemented | Planned Phases 4-6. |
+| Hybrid evidence retrieval | `api/retrieval.py`, `models/retrieval.py`, `services/retrieval.py` | Semantic + BM25 retrieval, filters, deterministic reranking, and budgeted evidence/context; no answer generation. |
+| Generation/study tools | Not implemented | Planned Phases 5-6. |
 
 ## F. Development conventions
 

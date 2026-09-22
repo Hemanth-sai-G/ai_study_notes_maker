@@ -1,18 +1,19 @@
-# Current State - 2026-09-16
+# Current State - 2026-09-22
 
 ## Snapshot
 
-- Branch: `main1`.
-- HEAD: `1ebf78b` - `phase-3 local semantic knowledge base dividing into chunks`.
-- Working tree at the end of the handoff audit: the documentation package (`AGENTS.md` plus the new handoff files in `docs/`) is uncommitted. Application source behavior is unchanged by this handoff task.
-- Current completed implementation: Phases 0-3 of the project roadmap.
-- Current work in progress: no running implementation task. The next planned task is Phase 4, Advanced RAG retrieval.
+- Branch: `main2`.
+- HEAD: `b6ec180` - `docs: require project guide updates per phase`.
+- Working tree contains the uncommitted Phase 4 implementation and closeout documentation.
+- Current completed implementation: Phases 0-4 of the project roadmap.
+- Exact next task: Phase 5 grounded local chat and citations, after the user confirms the Ollama/Qwen model.
 
 ## Completed
 
 1. **Foundation/UI (Phase 1):** React/Vite/TypeScript interface, FastAPI health endpoint, localhost Vite proxy, responsive workspace and Library UI.
 2. **Ingestion (Phase 2):** local PDF, DOCX, PPTX, TXT, PNG/JPG/JPEG/WEBP upload; 50 MB limit; UUID storage; extracted-text persistence; JSON catalogue; local Library display.
 3. **Knowledge base (Phase 3):** paragraph-oriented chunks, `all-MiniLM-L6-v2` embeddings, ChromaDB persistence, source metadata, re-index endpoint and Library action.
+4. **Advanced retrieval (Phase 4):** semantic Chroma retrieval, local BM25, score fusion, filters, conservative rewriting, deterministic reranking, duplicate-aware word-budgeted context selection, provenance-rich evidence API, and Workspace evidence search.
 
 ## Current local data state
 
@@ -20,7 +21,7 @@ The live local data folders are ignored by Git. At the last verified Phase 3 run
 
 ## Recent meaningful changes
 
-The latest commit added Phase 2 and Phase 3 application code, the React frontend, dependencies, and updated project guides. It also accidentally includes `tmp/phase3-pip-out.log` and `tmp/phase3-pip-err.log`, which are installation diagnostics and should be removed in a future documentation/cleanup commit after confirming they are not needed. They do not affect runtime behavior.
+The uncommitted Phase 4 change set adds `api/retrieval.py`, `models/retrieval.py`, `services/retrieval.py`, focused tests, route registration, and the React evidence-search panel. It preserves the existing Chroma metadata contract and does not call any cloud service or LLM.
 
 ## Recently changed source areas
 
@@ -28,6 +29,8 @@ The latest commit added Phase 2 and Phase 3 application code, the React frontend
 - `backend/app/services/{document_extractor,document_repository,chunking,knowledge_base}.py`
 - `backend/app/models/documents.py`
 - `backend/app/core/config.py`
+- `backend/app/{api,models,services}/retrieval.py`
+- `backend/tests/test_retrieval*.py`
 - `frontend/src/{App.tsx,styles.css}`
 - `backend/requirements.txt`, `frontend/package*.json`
 
@@ -36,12 +39,13 @@ The latest commit added Phase 2 and Phase 3 application code, the React frontend
 Passing checks recorded during implementation:
 
 - Python compilation: `python -m compileall -q backend/app`.
+- Ten deterministic Phase 4 retrieval tests pass; the optional real FastAPI/ChromaDB integration check is skipped until `STUDYMATE_RUN_REAL_INTEGRATION=1` is set after indexing documents.
 - Focused upload/extraction checks for PDF, DOCX, PPTX, TXT, PNG plus unsupported-file rejection.
 - Deterministic ChromaDB persistence check using a fake embedding model.
 - Actual `all-MiniLM-L6-v2` cache-only embedding run and real local indexing: 2 documents / 15 chunks.
 - `npm run build` in `frontend/`.
 
-There is no committed test suite, test runner configuration, linter, or end-to-end test harness. These are test gaps, not known failing tests.
+There is a committed Python `unittest` suite for Phase 4 retrieval. Extraction/indexing tests, a frontend test runner, linting, and end-to-end automation remain test gaps.
 
 ## Warnings and known runtime conditions
 
@@ -50,6 +54,7 @@ There is no committed test suite, test runner configuration, linter, or end-to-e
 - The Hugging Face cache can warn about Windows symlink support. The embedding model works without symlinks, using more disk space.
 - Tesseract executable is not known to be installed. Image records can be saved but show `OCR needed` and are not indexable until OCR produces text.
 - On a fresh machine, the first model download requires internet; normal runtime indexing deliberately uses `local_files_only=True`.
+- Phase 4 is retrieval only: Ollama, grounded answers/citations, chat memory, study tools, translation, audio/video, and authentication remain deferred.
 
 ## Must not be lost
 

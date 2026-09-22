@@ -6,26 +6,22 @@ Read [AGENTS.md](../AGENTS.md) first, then [PROJECT_HANDOFF.md](PROJECT_HANDOFF.
 
 ## Current Mission
 
-Continue StudyMate AI from its completed local ingestion and semantic-index checkpoint toward Advanced RAG retrieval.
+Continue StudyMate AI from its completed local retrieval checkpoint toward grounded answer generation.
 
 ## Current State
 
-The active app is React/Vite + FastAPI. Phase 2 stores local source files/extracted text and Phase 3 creates locally persistent MiniLM embeddings in ChromaDB. The Library UI can build a knowledge base. There is no retrieval API, BM25 index, reranker, Ollama integration, chat, citations, or study-material generation yet.
+The active app is React/Vite + FastAPI. Phase 2 stores local source files/extracted text and Phase 3 creates locally persistent MiniLM embeddings in ChromaDB. Phase 4 is complete: the backend provides semantic retrieval, local BM25, score fusion, conservative rewriting, metadata filters, deterministic reranking, deduplicated context selection, a word budget, provenance-rich evidence, and the React Workspace evidence-query UI. Ollama integration, chat, citations, and study-material generation are not yet implemented.
 
 ## Immediate Next Task
 
-Implement **Phase 4: Advanced RAG retrieval**, beginning with a tested semantic-vector retrieval endpoint and evidence data contract. Then add BM25, score fusion, filters, query rewriting, reranking, and context optimization incrementally rather than in one untestable change.
+Phase 4 is complete on branch `main2`. The exact next task is Phase 5: confirm the local Ollama/Qwen model and implement grounded generation using only the evidence returned by `POST /api/v1/retrieval/query`.
 
-## Implementation Approach
+## Phase 4 Delivered
 
-1. Inspect `knowledge_base.py`, `chunking.py`, `documents.py`, and the current Chroma metadata schema.
-2. Define Pydantic request/response models for a query and evidence result. Preserve source metadata in the response.
-3. Implement a semantic Chroma query service first; test known documents and an empty-index error.
-4. Build BM25 from the same chunks/extracted text with a clear rebuild policy; test exact keyword matches.
-5. Normalize/fuse the two rankings and deduplicate by chunk ID.
-6. Add document/type metadata filtering.
-7. Add reranking only after baseline retrieval is testable. Choose/download its local model only with user awareness.
-8. Return compact context/evidence. Do not call an LLM in Phase 4.
+- `POST /api/v1/retrieval/query` returns ranked, provenance-rich local evidence from Chroma semantic retrieval plus local BM25 scoring, weighted fusion, deterministic reranking, and budgeted de-duplicated context selection.
+- The retrieval contract supports document/type filters, exposes diagnostics, rejects whitespace-only questions, and returns explicit empty-index/no-evidence results.
+- `frontend/src/App.tsx` provides an evidence-only Workspace search panel; no answer is generated in Phase 4.
+- Ten deterministic fixture tests cover request validation, rewriting, BM25, hybrid ordering, filters, provenance, reranking, context budgets, and the empty-index case. One real-stack integration check is opt-in.
 
 ## Files to Inspect First
 
@@ -33,49 +29,50 @@ Implement **Phase 4: Advanced RAG retrieval**, beginning with a tested semantic-
 - `backend/app/services/knowledge_base.py`
 - `backend/app/services/chunking.py`
 - `backend/app/api/documents.py`
+- `backend/app/api/retrieval.py`
 - `backend/app/models/documents.py`
+- `backend/app/models/retrieval.py`
+- `backend/app/services/retrieval.py`
 - `backend/app/core/config.py`
 - `frontend/src/App.tsx`
 - `docs/IMPLEMENTATION_PLAN.md`
 - `docs/DECISIONS.md`
 
-## Files Expected to Change
+## Phase 5 Files Expected to Change
 
-- New retrieval service(s) and API route/model module(s).
-- `backend/app/main.py` to register a new route.
-- `backend/requirements.txt` only if a justified local dependency is required.
-- `frontend/src/App.tsx` and `styles.css` for evidence-query UI, if included in the phase checkpoint.
+- New generation/chat service(s), API route/model module(s), and focused tests.
+- `backend/app/main.py` to register a generation route.
+- `backend/requirements.txt` only if a justified local Ollama dependency is required.
+- `frontend/src/App.tsx` and `styles.css` for grounded-answer UI.
 - Project/handoff docs and new tests.
 
 This is not blanket permission to modify these files; inspect and change only what the implemented design needs.
 
-## Acceptance Criteria
+## Phase 5 Acceptance Criteria
 
-- An indexed document can be queried semantically through FastAPI.
-- Result evidence has text, score/rank, document identity/name, page/slide, section title, and chunk ID/index.
-- Empty/no-text/error conditions are explicit and user-safe.
-- BM25 and fused ranking are tested before reranking.
-- No source material, embedding, or query is sent to cloud services.
-- Existing indexing and frontend build still pass.
+- The generator uses only evidence returned by the Phase 4 retrieval service.
+- Every answer has code-derived document/page-or-slide citations, or says that evidence is insufficient.
+- Ollama-unavailable, no-evidence, and generation errors are explicit and user-safe.
+- No source material, embedding, query, or answer leaves the device.
+- Existing retrieval tests and frontend build still pass.
 
 ## Verification
 
-Run the current verified commands in [TESTING.md](TESTING.md), then add/run focused retrieval tests. Test both exact-term and semantic-paraphrase queries with controlled fixture data. Run `npm run build` in `frontend/` after UI changes.
+Run the current verified commands in [TESTING.md](TESTING.md), then add/run focused generation and citation tests. Run `npm run build` in `frontend/` after UI changes.
 
 ## Required Phase Closeout
 
-Do not call Phase 4 complete until `docs/PROJECT_GUIDE.md` is updated in the same change set. Follow the format established for Phases 0-3: completion log, files to know, flow diagram, explanation of concepts/models, verification, limitations, roadmap status, and exact next implementation step.
+Do not call Phase 5 complete until `docs/PROJECT_GUIDE.md` is updated in the same change set. Follow the established format: completion log, files to know, flow diagram, explanation of models, verification, limitations, review talking points, and the exact next implementation step.
 
 ## Do Not Do
 
 - Do not replace ChromaDB, MiniLM, React/FastAPI, or local storage without user approval.
-- Do not wire Ollama or generate answers during Phase 4.
+- Do not implement study tools, translation, audio/video, or authentication during Phase 5.
 - Do not expose raw source files or commit `backend/data/`.
 - Do not silently re-enable network model downloads at runtime.
-- Do not modify/delete the legacy Streamlit prototype as part of Phase 4.
+- Do not modify/delete the legacy Streamlit prototype as part of Phase 5.
 
 ## Open Questions
 
-- Reranker model selection remains open; choose a compact local cross-encoder only after baseline retrieval works.
-- The user must choose/confirm the final Ollama model before Phase 5.
+- The user must choose/confirm the final Ollama model before generation is implemented.
 - Tesseract installation and OCR quality are unresolved.
