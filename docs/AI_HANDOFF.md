@@ -14,7 +14,7 @@ The active app is React/Vite + FastAPI. Phase 2 stores local source files/extrac
 
 ## Immediate Next Task
 
-Phase 4 is committed on branch `main2` as `f4ab175`. Phase 5 is in progress with local `qwen2.5:3b`: the evidence-only generation service, endpoint, code-derived citations, tests, and UI are present. Start Ollama and download the model before live answer verification.
+Phases 4 and 5 are committed as `f4ab175` and `f0694dd` on branch `main2`. Phase 6 is complete in the current uncommitted change set: selected-document Study Tools generate grounded notes, summaries, explanations, flashcards, quizzes, comparisons, verified sources, and browser-local Markdown exports. Live Qwen flashcard verification passed. The exact next phase is Phase 7 evaluation and hardening.
 
 ## Phase 4 Delivered
 

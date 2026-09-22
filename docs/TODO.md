@@ -2,7 +2,7 @@
 
 ## Critical
 
-- **Complete Phase 5 live verification.** Current state: the grounded chat service/API/UI and code-derived citations are implemented for local `qwen2.5:3b`, but Ollama was not running during implementation. Start Ollama, pull the model, then verify answer grounding and citations against indexed local documents. Acceptance: answers use only supplied evidence and display deterministic code-derived citations.
+- **Implement Phase 7 evaluation and hardening.** Current state: Phases 0-6 work locally. Next: build a labelled evaluation set, report retrieval/citation/latency metrics, add broader automated tests, improve errors, and prepare a repeatable demo.
 
 ## High Priority
 
@@ -11,7 +11,6 @@
 
 ## Medium Priority
 
-- **Study tools / exports (Phase 6).** Notes, summaries, explanations, quizzes, flashcards, comparison, and export are planned but absent from the new stack. Dependency: Phase 5 grounded generation.
 - **Evaluation dashboard.** Retrieval metrics, latency, citation coverage and faithfulness are planned for Phase 7. Dependency: retrieval/generation APIs and a labelled evaluation corpus.
 - **Improve document extraction.** DOCX and PPTX do not currently preserve fine-grained page/slide/heading provenance as completely as PDF; scanned PDFs do not automatically fall back to OCR. Dependency: OCR strategy and source mapping design.
 

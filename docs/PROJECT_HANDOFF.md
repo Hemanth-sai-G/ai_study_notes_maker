@@ -5,7 +5,7 @@
 **Name:** StudyMate AI (the proposal also describes it as an Advanced RAG-Powered Learning Assistant).
 **Purpose:** Help students turn their own course materials into source-grounded learning support.
 **Target users:** Students using local PDFs, Word documents, PowerPoint slides, text files, and eventually images/scanned notes.
-**Current status:** Phases 0-4 are complete. Phase 5 implementation is in progress: the app has an evidence-only local Ollama generation layer and code-derived citations, pending live verification with the downloaded Qwen model.
+**Current status:** Phases 0-6 are complete: local ingestion, hybrid retrieval, evidence-only local Qwen chat, code-derived citations, and selected-document study tools with local Markdown exports. The next phase is evaluation and hardening.
 
 ## B. Technology stack
 
@@ -74,7 +74,7 @@ The document JSON record contains UUID storage name, original display name, type
 | Library UI | `frontend/src/App.tsx` | No document deletion/details/re-index-per-item. Build verified. |
 | Hybrid evidence retrieval | `api/retrieval.py`, `models/retrieval.py`, `services/retrieval.py` | Semantic + BM25 retrieval, filters, deterministic reranking, and budgeted evidence/context; no answer generation. |
 | Grounded chat | `api/chat.py`, `models/generation.py`, `services/generation.py` | Uses retrieval before local Ollama, generates citations in code, and stores limited session context only in memory. Live model verification remains. |
-| Study tools | Not implemented | Planned Phase 6. |
+| Study tools | `api/study_tools.py`, `models/study.py`, `services/study_tools.py` | Notes, summaries, explanations, flashcards, quizzes, comparisons, verified sources, and browser-local Markdown exports. |
 
 ## F. Development conventions
 

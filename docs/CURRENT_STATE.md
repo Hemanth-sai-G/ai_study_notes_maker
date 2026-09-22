@@ -3,10 +3,9 @@
 ## Snapshot
 
 - Branch: `main2`.
-- HEAD: `f4ab175` - `phase-4 advanced local retrieval`.
-- Working tree contains the uncommitted Phase 5 implementation and checkpoint documentation.
-- Current completed implementation: Phases 0-4 of the project roadmap.
-- Current work in progress: Phase 5 grounded local chat and citations using local `qwen2.5:3b`. Live verification awaits a running Ollama service and downloaded model.
+- HEAD: `f0694dd` - `phase-5 grounded local chat and citations`.
+- Working tree contains the uncommitted Phase 6 implementation and closeout documentation.
+- Current completed implementation: Phases 0-6. The exact next phase is Phase 7 evaluation, hardening, and demonstration preparation.
 
 ## Completed
 
@@ -14,7 +13,8 @@
 2. **Ingestion (Phase 2):** local PDF, DOCX, PPTX, TXT, PNG/JPG/JPEG/WEBP upload; 50 MB limit; UUID storage; extracted-text persistence; JSON catalogue; local Library display.
 3. **Knowledge base (Phase 3):** paragraph-oriented chunks, `all-MiniLM-L6-v2` embeddings, ChromaDB persistence, source metadata, re-index endpoint and Library action.
 4. **Advanced retrieval (Phase 4):** semantic Chroma retrieval, local BM25, score fusion, filters, conservative rewriting, deterministic reranking, duplicate-aware word-budgeted context selection, provenance-rich evidence API, and Workspace evidence search.
-5. **Grounded chat (Phase 5, in progress):** evidence-only Ollama prompt, code-derived citations, session-only in-memory context, safe unavailable-model handling, and Workspace answer display.
+5. **Grounded chat (Phase 5):** evidence-only Ollama prompt, code-derived citations, session-only in-memory context, safe unavailable-model handling, and Workspace answer display.
+6. **Study tools (Phase 6):** selected-document notes, summaries, explanations, flashcards, quizzes, comparisons, verified sources, and local Markdown export.
 
 ## Current local data state
 
@@ -22,7 +22,7 @@ The live local data folders are ignored by Git. At the last verified Phase 3 run
 
 ## Recent meaningful changes
 
-Phase 4 was committed as `f4ab175`. The uncommitted Phase 5 change set adds the generation model/service/API, local Ollama configuration, focused tests, and the grounded-answer Workspace UI. It preserves the existing Chroma metadata contract and does not call any cloud service.
+Phase 4 was committed as `f4ab175` and Phase 5 as `f0694dd`. The uncommitted Phase 6 change set adds selected-document study tools, focused tests, Study Tools UI, and browser-local Markdown export. It preserves the existing Chroma metadata contract and does not call any cloud service.
 
 ## Recently changed source areas
 

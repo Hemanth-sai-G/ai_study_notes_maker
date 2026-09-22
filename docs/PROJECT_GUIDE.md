@@ -253,7 +253,7 @@ Question and optional filters
 
 BM25 is calculated in memory from the Chroma-filtered chunks at query time, so it is simple and local but may need a persisted index for very large libraries. The real integration check requires an indexed local document and the MiniLM cache. Phase 4 does not include Ollama, answers, citations, chat history, authentication, translation, audio, or video.
 
-### Phase 5 checkpoint - Grounded local chat (in progress)
+### Phase 5 - Grounded local chat and citations (complete)
 
 - Added `POST /api/v1/chat/answer`. It always uses the Phase 4 retrieval service first; Ollama never reads ChromaDB or uploaded files directly.
 - The selected local model is `qwen2.5:3b`, requested through local Ollama at `http://127.0.0.1:11434`. No cloud API or Python Ollama dependency was added.
@@ -261,6 +261,7 @@ BM25 is calculated in memory from the Chroma-filtered chunks at query time, so i
 - Citations are constructed in Python from retrieved metadata. The model cannot invent document names, pages/slides, sections, or chunk IDs.
 - Conversation context is a four-turn, in-memory session history. It is never saved and disappears when the backend stops.
 - The Workspace can display a grounded answer and its verified sources. The existing retrieval inspector remains available for review.
+- Local Qwen model verification passed before Phase 6: `qwen2.5:3b` answered a local prompt and produced grounded flashcards from an indexed Library document.
 
 ### Phase 5: files to know
 
@@ -271,16 +272,46 @@ BM25 is calculated in memory from the Chroma-filtered chunks at query time, so i
 | `backend/app/api/chat.py` | Provides the local answer API and safe Ollama error messages. |
 | `backend/tests/test_generation.py` | Tests grounding, citations, no-evidence behavior, session memory, and unavailable Ollama. |
 
-### Phase 5 setup still required
+### Phase 5 local model setup
 
-Ollama is installed but was not running during implementation. Before live answer testing, run the following in PowerShell:
+Ollama is running locally and `qwen2.5:3b` is installed. On a new machine, install Ollama, run `ollama serve`, and run `ollama pull qwen2.5:3b` once before using grounded answers. All study material and inference remain on the device.
 
-```powershell
-ollama serve
-ollama pull qwen2.5:3b
+### Phase 6 - Study tools and exports (complete)
+
+- Workspace cards now open **Study tools**, not the upload dialog. Students choose one or more documents already indexed in their local Library.
+- Added local, grounded generators for notes, summaries, explanations, flashcards, quizzes, and document comparisons through `POST /api/v1/study/generate`.
+- The selected document IDs become retrieval filters before Ollama is called. Every generated study material returns code-derived source references from the same evidence metadata.
+- The Study Tools screen has a mode selector, multi-document picker, optional topic field, generated material display, verified source list, and a local Markdown download that includes the sources.
+- A live flashcard test succeeded with the installed local Qwen model and an indexed proposal PDF: it returned eight verified citations. No study data left the device.
+
+### Phase 6: files to know
+
+| File | What it does |
+| --- | --- |
+| `backend/app/models/study.py` | Validates study mode, selected Library documents, and optional topic. |
+| `backend/app/services/study_tools.py` | Retrieves evidence from the selected documents and prompts local Qwen with mode-specific instructions. |
+| `backend/app/api/study_tools.py` | Provides the local study-material generation endpoint. |
+| `backend/tests/test_study_tools.py` | Tests selected-document filtering, citation preservation, and no-evidence behavior. |
+| `frontend/src/App.tsx` | Opens Study Tools from the Workspace, lets students select existing documents, and exports results as Markdown. |
+
+### Phase 6 flow
+
+```text
+Workspace card -> Study Tools screen -> choose indexed Library documents
+  -> retrieval filter restricts evidence to those documents
+  -> local Qwen creates the selected study format
+  -> code adds verified sources -> optional Markdown download stays local
 ```
 
-Then index at least one local document and ask a question in the Workspace. The one-time model download stays local; all study material and inference remain on the device.
+### Explain it in a review
+
+**How do flashcards avoid using unrelated documents?** The frontend sends selected document IDs, and the backend applies them as ChromaDB retrieval filters before the model receives any text.
+
+**Why generate all study modes through one service?** Notes, quizzes, flashcards, and comparisons share the same tested evidence/citation pipeline; only the output instruction changes. This avoids duplicating RAG logic.
+
+### Phase 6 verification and limitations
+
+The full Python suite passes: eighteen deterministic tests plus one live local flashcard generation check. The frontend production build passes. Markdown export is browser-local; PDF/DOCX exports, user-editable saved collections, and a retrieval/evaluation dashboard are deferred to Phase 7 or future enhancement.
 
 ## 8. Phased build roadmap
 
@@ -293,8 +324,8 @@ Each phase is intentionally self-contained. We will stop at the end of a phase, 
 | 2 | Document ingestion | Complete - uploads are stored locally and PDF, DOCX, PPTX, and TXT text/metadata are extracted. Images are validated and OCR-ready. |
 | 3 | Local knowledge base | Complete - semantic chunks, local MiniLM embeddings, and persistent ChromaDB indexing work for uploaded documents. |
 | 4 | Advanced retrieval | Complete - backend retrieval pipeline, provenance-rich API, opt-in real-stack test, and React evidence-query UI. |
-| 5 | Grounded chat and citations | In progress - evidence-only Ollama service, code-derived citations, session-only memory, UI, and tests are implemented; live model verification remains. |
-| 6 | Study tools | Notes, summaries, explanations, quizzes, flashcards, comparisons, and exports use the same evidence pipeline. |
+| 5 | Grounded chat and citations | Complete - local Qwen evidence-only answers, code-derived citations, session-only memory, UI, and live local-model verification. |
+| 6 | Study tools | Complete - selected-document notes, summaries, explanations, flashcards, quizzes, comparisons, verified sources, and local Markdown exports. |
 | 7 | Evaluation and hardening | Evaluation dashboard, tests, error handling, performance tuning, local security controls, documentation, and demo preparation. |
 | Later | Deferred features | Audio/video ingestion, authentication/multi-user access, and response translation. |
 
@@ -332,4 +363,4 @@ To prepare a production frontend bundle, run `npm run build` in `frontend/`. Vit
 
 ## 11. Next implementation step
 
-Phase 5: define the local Ollama/Qwen setup and implement grounded answer generation using only the Phase 4 evidence contract. Do not begin generation until the local model choice is confirmed and available.
+Phase 7: add evaluation, hardening, broader automated coverage, secure deletion controls, demonstration preparation, and reproducible local setup guidance.
