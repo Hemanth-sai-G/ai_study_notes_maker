@@ -14,7 +14,7 @@ The active app is React/Vite + FastAPI. Phase 2 stores local source files/extrac
 
 ## Immediate Next Task
 
-Phases 4 and 5 are committed as `f4ab175` and `f0694dd` on branch `main2`. Phase 6 is complete in the current uncommitted change set: selected-document Study Tools generate grounded notes, summaries, explanations, flashcards, quizzes, comparisons, verified sources, and browser-local Markdown exports. Live Qwen flashcard verification passed. The exact next phase is Phase 7 evaluation and hardening.
+Phases 4, 5, and 6 are committed as `f4ab175`, `f0694dd`, and `90c850f` on branch `main2`. The current uncommitted Phase 6 enhancement turns flashcards into JSON-validated flip cards and quizzes into JSON-validated scored multiple-choice activities with explanations. The exact next phase after this enhancement is Phase 7 evaluation and hardening.
 
 ## Phase 4 Delivered
 

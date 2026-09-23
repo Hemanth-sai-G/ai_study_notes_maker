@@ -22,7 +22,7 @@ The live local data folders are ignored by Git. At the last verified Phase 3 run
 
 ## Recent meaningful changes
 
-Phase 4 was committed as `f4ab175` and Phase 5 as `f0694dd`. The uncommitted Phase 6 change set adds selected-document study tools, focused tests, Study Tools UI, and browser-local Markdown export. It preserves the existing Chroma metadata contract and does not call any cloud service.
+Phase 4 was committed as `f4ab175`, Phase 5 as `f0694dd`, and Phase 6 as `90c850f`. The current uncommitted Phase 6 enhancement adds JSON-validated activities, flip-card flashcards, scored quiz feedback with explanations, and an enforced two-document comparison flow. It preserves the existing Chroma metadata contract and does not call any cloud service.
 
 ## Recently changed source areas
 

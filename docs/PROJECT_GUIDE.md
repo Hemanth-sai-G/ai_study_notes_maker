@@ -282,6 +282,11 @@ Ollama is running locally and `qwen2.5:3b` is installed. On a new machine, insta
 - Added local, grounded generators for notes, summaries, explanations, flashcards, quizzes, and document comparisons through `POST /api/v1/study/generate`.
 - The selected document IDs become retrieval filters before Ollama is called. Every generated study material returns code-derived source references from the same evidence metadata.
 - The Study Tools screen has a mode selector, multi-document picker, optional topic field, generated material display, verified source list, and a local Markdown download that includes the sources.
+- Flashcards are now interactive: one question card is shown at a time, clicking it flips to its answer, and Previous/Next controls reset the card cleanly.
+- Quizzes are structured multiple-choice activities: each question has four selectable options; after submission, the score and a generated explanation appear for every question. Incorrect or unanswered questions reveal the correct choice, while correctly selected choices are simply marked correct.
+- Flashcard and quiz prompts request JSON-mode output from local Qwen. The backend validates question/answer pairs, exactly four quiz options, correct-option indexes, and explanations before returning the activity to the UI.
+- Document comparison now explicitly requires two or more indexed Library documents in both the interface and API. A live comparison of two indexed proposal documents succeeded with eight verified citations.
+- The Workspace now exposes summary and concept-explanation cards alongside notes, quizzes, flashcards, and comparisons; each opens Study Tools with its matching mode already selected.
 - A live flashcard test succeeded with the installed local Qwen model and an indexed proposal PDF: it returned eight verified citations. No study data left the device.
 
 ### Phase 6: files to know
@@ -292,7 +297,7 @@ Ollama is running locally and `qwen2.5:3b` is installed. On a new machine, insta
 | `backend/app/services/study_tools.py` | Retrieves evidence from the selected documents and prompts local Qwen with mode-specific instructions. |
 | `backend/app/api/study_tools.py` | Provides the local study-material generation endpoint. |
 | `backend/tests/test_study_tools.py` | Tests selected-document filtering, citation preservation, and no-evidence behavior. |
-| `frontend/src/App.tsx` | Opens Study Tools from the Workspace, lets students select existing documents, and exports results as Markdown. |
+| `frontend/src/App.tsx` | Opens Study Tools from the Workspace, lets students select existing documents, provides flip-card flashcards and scored quiz feedback, and exports results as Markdown. |
 
 ### Phase 6 flow
 

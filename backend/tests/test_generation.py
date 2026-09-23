@@ -46,7 +46,7 @@ class FakeGenerator:
     def __init__(self) -> None:
         self.prompts: list[str] = []
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str, json_mode: bool = False) -> str:
         self.prompts.append(prompt)
         return "Plants convert light energy into chemical energy."
 

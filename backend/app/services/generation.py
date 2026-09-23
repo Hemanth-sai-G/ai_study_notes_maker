@@ -24,7 +24,7 @@ class OllamaGenerationError(RuntimeError):
 
 
 class LocalGenerator(Protocol):
-    def generate(self, prompt: str) -> str: ...
+    def generate(self, prompt: str, json_mode: bool = False) -> str: ...
 
 
 class OllamaClient:
@@ -34,8 +34,11 @@ class OllamaClient:
         self.base_url = base_url.rstrip("/")
         self.model = model
 
-    def generate(self, prompt: str) -> str:
-        payload = json.dumps({"model": self.model, "prompt": prompt, "stream": False}).encode("utf-8")
+    def generate(self, prompt: str, json_mode: bool = False) -> str:
+        request_data: dict[str, object] = {"model": self.model, "prompt": prompt, "stream": False}
+        if json_mode:
+            request_data["format"] = "json"
+        payload = json.dumps(request_data).encode("utf-8")
         request = Request(
             f"{self.base_url}/api/generate",
             data=payload,

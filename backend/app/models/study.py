@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.models.generation import Citation
 
@@ -27,6 +27,24 @@ class StudyRequest(BaseModel):
     def normalize_topic(cls, value: str | None) -> str | None:
         return value.strip() if value and value.strip() else None
 
+    @model_validator(mode="after")
+    def comparison_requires_two_documents(self) -> "StudyRequest":
+        if self.mode == "comparison" and len(self.document_ids) < 2:
+            raise ValueError("Document comparison needs two or more indexed documents.")
+        return self
+
+
+class Flashcard(BaseModel):
+    question: str = Field(min_length=1)
+    answer: str = Field(min_length=1)
+
+
+class QuizQuestion(BaseModel):
+    question: str = Field(min_length=1)
+    options: list[str] = Field(min_length=4, max_length=4)
+    correct_option: int = Field(ge=0, le=3)
+    explanation: str = Field(min_length=1)
+
 
 class StudyResponse(BaseModel):
     mode: StudyMode
@@ -37,3 +55,5 @@ class StudyResponse(BaseModel):
     message: str | None = None
     model: str | None = None
     evidence_count: int
+    flashcards: list[Flashcard] = []
+    quiz_questions: list[QuizQuestion] = []
