@@ -32,6 +32,19 @@ class FakeGenerator:
         return '{"flashcards":[{"question":"What does mitosis produce?","answer":"Two identical cells."}]}'
 
 
+class RetryGenerator:
+    model = "qwen2.5:3b"
+
+    def __init__(self):
+        self.calls = 0
+
+    def generate(self, _prompt, json_mode=False):
+        self.calls += 1
+        if self.calls == 1:
+            return '{"quiz_questions":[{"question":"Incomplete"}]}'
+        return '{"quiz_questions":[{"question":"What does mitosis produce?","options":["Two identical cells","Four cells","A protein","No cells"],"correct_option":0,"explanation":"The source says mitosis produces two identical cells."}]}'
+
+
 class StudyToolsTests(unittest.TestCase):
     def test_flashcards_use_selected_documents_and_attach_sources(self):
         retriever, generator = FakeRetriever(), FakeGenerator()
@@ -64,6 +77,12 @@ class StudyToolsTests(unittest.TestCase):
     def test_invalid_activity_has_a_model_format_error(self):
         with self.assertRaises(StudyActivityFormatError):
             StudyToolsService._structured_content("quiz", '{"questions":[{"question":"Incomplete"}]}')
+
+    def test_structured_activity_retries_once_after_invalid_model_output(self):
+        generator = RetryGenerator()
+        response = StudyToolsService(FakeRetriever(), generator).generate("quiz", ["doc-1"], "mitosis")
+        self.assertEqual(generator.calls, 2)
+        self.assertEqual(response.quiz_questions[0].correct_option, 0)
 
     def test_no_evidence_does_not_call_the_generator(self):
         generator = FakeGenerator()

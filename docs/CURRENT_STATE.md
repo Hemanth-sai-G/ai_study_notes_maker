@@ -24,6 +24,8 @@ The live local data folders are ignored by Git. At the last verified Phase 3 run
 
 Phase 4 was committed as `f4ab175`, Phase 5 as `f0694dd`, and Phase 6 as `90c850f`. The current uncommitted Phase 6 enhancement adds JSON-validated activities, flip-card flashcards, scored quiz feedback with explanations, and an enforced two-document comparison flow. It preserves the existing Chroma metadata contract and does not call any cloud service.
 
+The activity generator now makes one local, evidence-preserving retry when Qwen returns malformed flashcard or quiz JSON. This prevents transient structured-output failures from immediately surfacing as a 502; a user-safe error is returned only after two invalid attempts.
+
 ## Recently changed source areas
 
 - `backend/app/api/documents.py`
