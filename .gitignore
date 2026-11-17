@@ -8,3 +8,5 @@ backend/data/extracted/
 backend/data/chroma/
 backend/data/exports/
 backend/data/documents.json
+.work/
+outputs/
