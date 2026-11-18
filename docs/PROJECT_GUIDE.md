@@ -285,9 +285,14 @@ Ollama is running locally and `qwen2.5:3b` is installed. On a new machine, insta
 - Flashcards are now interactive: one question card is shown at a time, clicking it flips to its answer, and Previous/Next controls reset the card cleanly.
 - Quizzes are structured multiple-choice activities: each question has four selectable options; after submission, the score and a generated explanation appear for every question. Incorrect or unanswered questions reveal the correct choice, while correctly selected choices are simply marked correct.
 - Flashcard and quiz prompts request JSON-mode output from local Qwen. The backend validates question/answer pairs, exactly four quiz options, correct-option indexes, and explanations before returning the activity to the UI.
+- Quizzes return exactly 10 questions. Flashcards return 6-10 cards; each answer is a concise, direct explanation under 30 words so the flip-card layout remains readable. Overlong answers are compacted locally; short but clear answers are accepted.
+- Structured activities reserve up to 2,048 local-model output tokens and use a low temperature (`0.2`) so Qwen has room to finish ten-item JSON and follows the requested schema more consistently.
 - If the local model returns malformed flashcard or quiz JSON, the backend repeats the same evidence-grounded request once with a format-only correction before showing an error. Empty activities are rejected rather than displayed as successful results.
 - Document comparison now explicitly requires two or more indexed Library documents in both the interface and API. A live comparison of two indexed proposal documents succeeded with eight verified citations.
 - The Workspace now exposes summary and concept-explanation cards alongside notes, quizzes, flashcards, and comparisons; each opens Study Tools with its matching mode already selected.
+- Study notes, summaries, explanations, and comparisons now request plain text rather than Markdown. The result view also removes any legacy Markdown markers before display, so headings and points remain readable without visible `#` or `*` symbols.
+- Verified sources are grouped by document in the result view. The interface shows the number of supporting passages instead of repeating the same filename for every retrieved chunk, while the backend keeps the complete provenance metadata.
+- The unused Analytics navigation item and redundant sidebar local-status card were removed for a cleaner expo presentation.
 - A live flashcard test succeeded with the installed local Qwen model and an indexed proposal PDF: it returned eight verified citations. No study data left the device.
 
 ### Phase 6: files to know

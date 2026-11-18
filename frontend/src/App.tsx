@@ -1,7 +1,7 @@
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 
 type ApiStatus = "checking" | "connected" | "offline";
-type NavItem = "Workspace" | "Library" | "Study tools" | "Analytics";
+type NavItem = "Workspace" | "Library" | "Study tools";
 type StudyMode = "notes" | "summary" | "explanation" | "flashcards" | "quiz" | "comparison";
 type StudyDocument = { id: string; original_name: string; file_type: string; size_bytes: number; page_or_slide_count: number | null; character_count: number; extraction_status: "ready" | "ocr_unavailable"; extraction_message: string | null; indexing_status: "not_indexed" | "indexed" | "no_text" | "indexing_error"; chunk_count: number; indexing_message: string | null; created_at: string; };
 type Evidence = { evidence_id: string; text: string; score: number; rank: number; document_id: string; document_name: string; file_type: string; page_or_slide: number | null; section_title: string | null; chunk_id: string; chunk_index: number; };
@@ -11,7 +11,7 @@ type Flashcard = { question: string; answer: string; };
 type QuizQuestion = { question: string; options: string[]; correct_option: number; explanation: string; };
 type StudyResponse = { mode: StudyMode; title: string; content: string; citations: Evidence[]; status: "ok" | "insufficient_evidence"; message?: string | null; model?: string | null; evidence_count: number; flashcards: Flashcard[]; quiz_questions: QuizQuestion[]; };
 
-const navItems: { name: NavItem; icon: string }[] = [{ name: "Workspace", icon: "⌘" }, { name: "Library", icon: "▤" }, { name: "Study tools", icon: "✦" }, { name: "Analytics", icon: "◔" }];
+const navItems: { name: NavItem; icon: string }[] = [{ name: "Workspace", icon: "⌘" }, { name: "Library", icon: "▤" }, { name: "Study tools", icon: "✦" }];
 const studyActions: { icon: string; title: string; text: string; mode: StudyMode }[] = [
   { icon: "☷", title: "Create study notes", text: "Turn selected readings into a clear structure.", mode: "notes" },
   { icon: "≡", title: "Create a summary", text: "Condense selected material into key ideas.", mode: "summary" },
@@ -20,6 +20,40 @@ const studyActions: { icon: string; title: string; text: string; mode: StudyMode
   { icon: "◫", title: "Build flashcards", text: "Create rapid-review cards from concepts.", mode: "flashcards" },
   { icon: "↔", title: "Compare documents", text: "Find shared ideas and differences.", mode: "comparison" },
 ];
+
+type SourceReference = Pick<Evidence, "evidence_id" | "document_id" | "document_name" | "file_type" | "page_or_slide" | "section_title">;
+
+function SourceList({ citations }: { citations: SourceReference[] }) {
+  const sources = Array.from(citations.reduce((grouped, citation) => {
+    const source = grouped.get(citation.document_id) ?? { name: citation.document_name, fileType: citation.file_type, locations: new Set<string>(), passages: 0 };
+    if (citation.page_or_slide) source.locations.add(`${citation.file_type === "PPTX" ? "Slide" : "Page"} ${citation.page_or_slide}`);
+    source.passages += 1;
+    grouped.set(citation.document_id, source);
+    return grouped;
+  }, new Map<string, { name: string; fileType: string; locations: Set<string>; passages: number }>()).values());
+
+  return <div className="citation-list"><strong>Verified sources</strong>{sources.map((source) => <small key={source.name}>{source.name}{source.locations.size ? ` • ${Array.from(source.locations).join(", ")}` : ""}{source.passages > 1 ? ` • ${source.passages} supporting passages` : ""}</small>)}</div>;
+}
+
+function cleanStudyLine(line: string) {
+  return line.trim().replace(/^#{1,6}\s+/, "").replace(/^[-*+]\s+/, "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/__(.*?)__/g, "$1").replace(/`([^`]+)`/g, "$1");
+}
+
+function cleanStudyText(content: string) {
+  return content.replace(/\r/g, "").split("\n").map(cleanStudyLine).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function CleanStudyContent({ content }: { content: string }) {
+  const lines = content.replace(/\r/g, "").split("\n");
+  return <div className="study-content">{lines.map((line, index) => {
+    const isHeading = /^\s{0,3}#{1,6}\s+/.test(line);
+    const isListItem = /^\s*[-*+]\s+/.test(line);
+    const cleanLine = cleanStudyLine(line);
+    if (!cleanLine) return <div className="study-content-space" key={`space-${index}`} />;
+    if (isHeading) return <h3 key={`heading-${index}`}>{cleanLine}</h3>;
+    return <p className={isListItem ? "study-content-point" : undefined} key={`line-${index}`}>{cleanLine}</p>;
+  })}</div>;
+}
 
 function App() {
   const [status, setStatus] = useState<ApiStatus>("checking");
@@ -39,7 +73,7 @@ function App() {
   const openStudyTools = (mode: StudyMode) => { setStudyMode(mode); setActiveNav("Study tools"); };
 
   return <div className="app-shell">
-    <aside className="sidebar"><div className="brand"><div className="brand-mark"><span>✦</span></div><span>StudyMate <em>AI</em></span></div><div className="workspace-switcher"><span className="switcher-icon">◈</span><span>My workspace</span><span className="switcher-caret">⌄</span></div><nav aria-label="Main navigation"><p className="nav-label">WORKSPACE</p>{navItems.map((item) => <button className={`nav-item ${activeNav === item.name ? "active" : ""}`} key={item.name} onClick={() => setActiveNav(item.name)} type="button"><span className="nav-icon">{item.icon}</span>{item.name}{item.name === "Library" && documents.length > 0 && <b className="library-count">{documents.length}</b>}</button>)}</nav><div className="sidebar-bottom"><div className="status-card"><span className={`status-light ${status}`}></span><div><strong>{statusLabel}</strong><small>Private • runs on this device</small></div></div><button className="help-link" type="button"><span>?</span> How StudyMate works</button><div className="profile"><div className="avatar">HS</div><div><strong>Hemanth Sai</strong><small>Local workspace</small></div><button type="button" aria-label="Account menu">•••</button></div></div></aside>
+    <aside className="sidebar"><div className="brand"><div className="brand-mark"><span>✦</span></div><span>StudyMate <em>AI</em></span></div><div className="workspace-switcher"><span className="switcher-icon">◈</span><span>My workspace</span><span className="switcher-caret">⌄</span></div><nav aria-label="Main navigation"><p className="nav-label">WORKSPACE</p>{navItems.map((item) => <button className={`nav-item ${activeNav === item.name ? "active" : ""}`} key={item.name} onClick={() => setActiveNav(item.name)} type="button"><span className="nav-icon">{item.icon}</span>{item.name}{item.name === "Library" && documents.length > 0 && <b className="library-count">{documents.length}</b>}</button>)}</nav><div className="sidebar-bottom"><button className="help-link" type="button"><span>?</span> How StudyMate works</button><div className="profile"><div className="avatar">HS</div><div><strong>Hemanth Sai</strong><small>Local workspace</small></div><button type="button" aria-label="Account menu">•••</button></div></div></aside>
     <main className="main-content"><header className="topbar"><div className="crumb"><span>Workspace</span><b>/</b><strong>{activeNav}</strong></div><div className="topbar-actions"><button className="icon-button" type="button" aria-label="Notifications">♧</button><button className="avatar compact" type="button" aria-label="Profile">HS</button></div></header>{activeNav === "Library" ? <Library documents={documents} onUpload={() => setIsUploadOpen(true)} onIndex={() => void indexDocuments()} isIndexing={isIndexing} indexMessage={indexMessage} /> : activeNav === "Study tools" ? <StudyTools documents={documents} initialMode={studyMode} /> : <Workspace documents={documents} onUpload={() => setIsUploadOpen(true)} onOpenLibrary={() => setActiveNav("Library")} onOpenStudyTools={openStudyTools} />}<footer><span>StudyMate AI</span><b>•</b> Your documents stay on this device <b>•</b><span className={`footer-dot ${status}`}></span> {status === "connected" ? "Backend connected" : status === "offline" ? "Start the backend to connect" : "Checking backend"}</footer></main>
     {isUploadOpen && <UploadDialog onClose={() => setIsUploadOpen(false)} onUploaded={onUploaded} />}
   </div>;
@@ -57,13 +91,93 @@ function EvidenceQueryPanel({ documents }: { documents: StudyDocument[] }) {
   return <section className="evidence-panel"><div className="section-heading"><div><p className="eyebrow"><span></span> SOURCE-GROUNDED CHAT</p><h2>Ask your materials</h2><p className="panel-subtitle">StudyMate retrieves local evidence first, then answers with local Ollama and verified source references.</p></div><span className="phase-badge">Local Qwen 3B</span></div><div className="query-controls"><input aria-label="Question" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void ask(); }} placeholder="e.g. What is the main concept in this chapter?" /><select aria-label="Filter by document" value={documentId} onChange={(event) => setDocumentId(event.target.value)}><option value="">All documents</option>{documents.map((document) => <option key={document.id} value={document.id}>{document.original_name}</option>)}</select><select aria-label="Filter by file type" value={fileType} onChange={(event) => setFileType(event.target.value)}><option value="">All types</option><option value="PDF">PDF</option><option value="DOCX">DOCX</option><option value="PPTX">PPTX</option><option value="TXT">TXT</option></select><button className="primary-button" type="button" disabled={answerLoading || !query.trim()} onClick={() => void ask()}>{answerLoading ? "Generating…" : "Ask StudyMate"}</button></div><button className="evidence-toggle" type="button" disabled={loading || !query.trim()} onClick={() => void search()}>{loading ? "Searching evidence…" : "Inspect retrieved evidence"}</button>{error && <p className="query-error">{error}</p>}{answer && <article className={`answer-card ${answer.status}`}><div className="answer-card-top"><span>GROUNDED ANSWER</span>{answer.model && <small>{answer.model} • local</small>}</div><p>{answer.answer}</p>{answer.citations.length ? <div className="citation-list"><strong>Verified sources</strong>{answer.citations.map((citation) => <small key={citation.evidence_id}>{citation.document_name}{citation.page_or_slide ? ` • ${citation.file_type === "PPTX" ? "Slide" : "Page"} ${citation.page_or_slide}` : ""}{citation.section_title ? ` • ${citation.section_title}` : ""}</small>)}</div> : <small>{answer.message}</small>}</article>}{result && <div className="evidence-results"><div className="retrieval-meta"><span>{result.evidence.length} evidence item{result.evidence.length === 1 ? "" : "s"}</span><small>Query used: {result.diagnostics.rewritten_query} • {result.diagnostics.context_word_count} context words</small></div>{result.evidence.length ? result.evidence.map((item) => <article className="evidence-card" key={item.evidence_id}><div className="evidence-card-top"><span className="evidence-rank">{item.rank}</span><strong>{item.document_name}</strong><span className="evidence-score">{item.score.toFixed(3)}</span></div><p>{item.text}</p><small>{item.file_type}{item.page_or_slide ? ` • ${item.file_type === "PPTX" ? "Slide" : "Page"} ${item.page_or_slide}` : ""}{item.section_title ? ` • ${item.section_title}` : ""} • {item.chunk_id}</small></article>) : <p className="no-evidence">{result.message ?? "No matching evidence found."}</p>}<details className="diagnostics"><summary>Retrieval diagnostics</summary><small>Semantic: {result.diagnostics.semantic_candidates} • BM25: {result.diagnostics.keyword_candidates} • Fused: {result.diagnostics.fused_candidates} • Reranked: {result.diagnostics.reranked_candidates}</small></details></div>}</section>;
 }
 
-function StudyTools({ documents, initialMode }: { documents: StudyDocument[]; initialMode: StudyMode }) {
+function LegacyStudyTools({ documents, initialMode }: { documents: StudyDocument[]; initialMode: StudyMode }) {
   const [mode, setMode] = useState<StudyMode>(initialMode); const [selected, setSelected] = useState<string[]>([]); const [topic, setTopic] = useState(""); const [result, setResult] = useState<StudyResponse | null>(null); const [loading, setLoading] = useState(false); const [error, setError] = useState<string | null>(null);
   const minimumDocuments = mode === "comparison" ? 2 : 1;
+  const modeGuidance = mode === "comparison" ? "Choose at least two documents. Hold Ctrl to select more than one." : mode === "flashcards" ? "Creates exactly 10 compact cards, with 50-70 words per card." : mode === "quiz" ? "Creates exactly 10 multiple-choice questions." : "Hold Ctrl to choose several documents.";
   const generate = async () => { if (!selected.length) { setError("Choose one or more indexed documents from your Library."); return; } setLoading(true); setError(null); try { const response = await fetch("/api/v1/study/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode, document_ids: selected, topic: topic || undefined }) }); const data: StudyResponse & { detail?: string } = await response.json(); if (!response.ok) throw new Error(data.detail ?? "Study material could not be created."); setResult(data); } catch (requestError) { setError(requestError instanceof Error ? requestError.message : "Study material could not be created."); } finally { setLoading(false); } };
   const updateSelection = (event: ChangeEvent<HTMLSelectElement>) => setSelected(Array.from(event.target.selectedOptions, (option) => option.value));
   const download = () => { if (!result || result.status !== "ok") return; const sources = result.citations.map((citation) => `- ${citation.document_name}${citation.page_or_slide ? ` (${citation.file_type === "PPTX" ? "Slide" : "Page"} ${citation.page_or_slide})` : ""}`).join("\n"); const body = result.mode === "flashcards" ? result.flashcards.map((card) => `Q: ${card.question}\nA: ${card.answer}`).join("\n\n") : result.mode === "quiz" ? result.quiz_questions.map((question, index) => `${index + 1}. ${question.question}\n${question.options.map((option, optionIndex) => `   ${"ABCD"[optionIndex]}. ${option}`).join("\n")}\nAnswer: ${"ABCD"[question.correct_option]}\nExplanation: ${question.explanation}`).join("\n\n") : result.content; const blob = new Blob([`# ${result.title}\n\n${body}\n\n## Verified sources\n${sources}\n`], { type: "text/markdown" }); const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${result.mode}-study-material.md`; link.click(); URL.revokeObjectURL(link.href); };
-  return <section className="study-tools-page"><div className="library-intro"><div><p className="eyebrow"><span></span> SOURCE-GROUNDED STUDY TOOLS</p><h1>Create from your Library</h1><p>Select documents already uploaded and indexed. Nothing is uploaded again.</p></div><span className="phase-badge">Phase 6</span></div>{documents.length ? <><div className="study-form"><label>Study mode<select value={mode} onChange={(event) => { setMode(event.target.value as StudyMode); setResult(null); setError(null); }}><option value="notes">Study notes</option><option value="summary">Summary</option><option value="explanation">Concept explanation</option><option value="flashcards">Flashcards</option><option value="quiz">Quiz</option><option value="comparison">Document comparison</option></select></label><label>Library documents <select multiple value={selected} onChange={updateSelection} size={Math.min(5, Math.max(2, documents.length))}>{documents.filter((document) => document.indexing_status === "indexed").map((document) => <option key={document.id} value={document.id}>{document.original_name}</option>)}</select><small>{mode === "comparison" ? "Choose at least two documents. Hold Ctrl to select more than one." : "Hold Ctrl to choose several documents."}</small></label><label>Optional topic<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. mitosis or key formulas" /></label><button className="primary-button" type="button" disabled={loading || selected.length < minimumDocuments} onClick={() => void generate()}>{loading ? "Creating locally…" : mode === "comparison" && selected.length < 2 ? "Choose two documents to compare" : "Create study material"}</button></div>{error && <p className="query-error">{error}</p>}{result && <article className={`study-result ${result.status}`}><div className="answer-card-top"><span>{result.title.toUpperCase()}</span>{result.model && <small>{result.model} • local</small>}</div>{result.mode === "flashcards" && result.flashcards.length ? <FlashcardDeck cards={result.flashcards} /> : result.mode === "quiz" && result.quiz_questions.length ? <QuizActivity questions={result.quiz_questions} /> : <pre>{result.content}</pre>}{result.citations.length ? <div className="citation-list"><strong>Verified sources</strong>{result.citations.map((citation) => <small key={citation.evidence_id}>{citation.document_name}{citation.page_or_slide ? ` • ${citation.file_type === "PPTX" ? "Slide" : "Page"} ${citation.page_or_slide}` : ""}</small>)}</div> : <small>{result.message}</small>}{result.status === "ok" && <button className="evidence-toggle" type="button" onClick={download}>Download as Markdown</button>}</article>}</> : <div className="library-empty"><h2>Your Library is empty</h2><p>Upload and index a document before creating study material.</p></div>}</section>;
+  return <section className="study-tools-page"><div className="library-intro"><div><p className="eyebrow"><span></span> SOURCE-GROUNDED STUDY TOOLS</p><h1>Create from your Library</h1><p>Select documents already uploaded and indexed. Nothing is uploaded again.</p></div><span className="phase-badge">Phase 6</span></div>{documents.length ? <><div className="study-form"><label>Study mode<select value={mode} onChange={(event) => { setMode(event.target.value as StudyMode); setResult(null); setError(null); }}><option value="notes">Study notes</option><option value="summary">Summary</option><option value="explanation">Concept explanation</option><option value="flashcards">Flashcards</option><option value="quiz">Quiz</option><option value="comparison">Document comparison</option></select></label><label>Library documents <select multiple value={selected} onChange={updateSelection} size={Math.min(5, Math.max(2, documents.length))}>{documents.filter((document) => document.indexing_status === "indexed").map((document) => <option key={document.id} value={document.id}>{document.original_name}</option>)}</select><small>{modeGuidance}</small></label><label>Optional topic<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. mitosis or key formulas" /></label><button className="primary-button" type="button" disabled={loading || selected.length < minimumDocuments} onClick={() => void generate()}>{loading ? "Creating locally…" : mode === "comparison" && selected.length < 2 ? "Choose two documents to compare" : "Create study material"}</button></div>{error && <p className="query-error">{error}</p>}{result && <article className={`study-result ${result.status}`}><div className="answer-card-top"><span>{result.title.toUpperCase()}</span>{result.model && <small>{result.model} • local</small>}</div>{result.mode === "flashcards" && result.flashcards.length ? <FlashcardDeck cards={result.flashcards} /> : result.mode === "quiz" && result.quiz_questions.length ? <QuizActivity questions={result.quiz_questions} /> : <pre>{result.content}</pre>}{result.citations.length ? <div className="citation-list"><strong>Verified sources</strong>{result.citations.map((citation) => <small key={citation.evidence_id}>{citation.document_name}{citation.page_or_slide ? ` • ${citation.file_type === "PPTX" ? "Slide" : "Page"} ${citation.page_or_slide}` : ""}</small>)}</div> : <small>{result.message}</small>}{result.status === "ok" && <button className="evidence-toggle" type="button" onClick={download}>Download as Markdown</button>}</article>}</> : <div className="library-empty"><h2>Your Library is empty</h2><p>Upload and index a document before creating study material.</p></div>}</section>;
+}
+
+function StudyTools({ documents, initialMode }: { documents: StudyDocument[]; initialMode: StudyMode }) {
+  const [mode, setMode] = useState<StudyMode>(initialMode);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [topic, setTopic] = useState("");
+  const [result, setResult] = useState<StudyResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const minimumDocuments = mode === "comparison" ? 2 : 1;
+  const modeGuidance = mode === "comparison"
+    ? "Choose at least two documents. Hold Ctrl to select more than one."
+    : mode === "flashcards"
+      ? "Creates 6-10 compact cards, with concise answers under 30 words."
+      : mode === "quiz"
+        ? "Creates exactly 10 multiple-choice questions."
+        : "Hold Ctrl to choose several documents.";
+
+  const generate = async () => {
+    if (!selected.length) {
+      setError("Choose one or more indexed documents from your Library.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/v1/study/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, document_ids: selected, topic: topic || undefined }),
+      });
+      const data: StudyResponse & { detail?: string } = await response.json();
+      if (!response.ok) throw new Error(data.detail ?? "Study material could not be created.");
+      setResult(data);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Study material could not be created.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateSelection = (event: ChangeEvent<HTMLSelectElement>) => {
+    setSelected(Array.from(event.target.selectedOptions, (option) => option.value));
+  };
+
+  const download = () => {
+    if (!result || result.status !== "ok") return;
+    const sources = Array.from(new Set(result.citations.map((citation) => `- ${citation.document_name}${citation.page_or_slide ? ` (${citation.file_type === "PPTX" ? "Slide" : "Page"} ${citation.page_or_slide})` : ""}`))).join("\n");
+    const body = result.mode === "flashcards"
+      ? result.flashcards.map((card) => `Q: ${card.question}\nA: ${card.answer}`).join("\n\n")
+      : result.mode === "quiz"
+        ? result.quiz_questions.map((question, index) => `${index + 1}. ${question.question}\n${question.options.map((option, optionIndex) => `   ${"ABCD"[optionIndex]}. ${option}`).join("\n")}\nAnswer: ${"ABCD"[question.correct_option]}\nExplanation: ${question.explanation}`).join("\n\n")
+        : cleanStudyText(result.content);
+    const blob = new Blob([`# ${result.title}\n\n${body}\n\n## Verified sources\n${sources}\n`], { type: "text/markdown" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${result.mode}-study-material.md`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  return <section className="study-tools-page">
+    <div className="library-intro"><div><p className="eyebrow"><span></span> SOURCE-GROUNDED STUDY TOOLS</p><h1>Create from your Library</h1><p>Select documents already uploaded and indexed. Nothing is uploaded again.</p></div><span className="phase-badge">Phase 6</span></div>
+    {documents.length ? <>
+      <div className="study-form">
+        <label>Study mode<select value={mode} onChange={(event) => { setMode(event.target.value as StudyMode); setResult(null); setError(null); }}><option value="notes">Study notes</option><option value="summary">Summary</option><option value="explanation">Concept explanation</option><option value="flashcards">Flashcards</option><option value="quiz">Quiz</option><option value="comparison">Document comparison</option></select></label>
+        <label>Library documents <select multiple value={selected} onChange={updateSelection} size={Math.min(5, Math.max(2, documents.length))}>{documents.filter((document) => document.indexing_status === "indexed").map((document) => <option key={document.id} value={document.id}>{document.original_name}</option>)}</select><small>{modeGuidance}</small></label>
+        <label>Optional topic<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. mitosis or key formulas" /></label>
+        <button className="primary-button" type="button" disabled={loading || selected.length < minimumDocuments} onClick={() => void generate()}>{loading ? "Creating locally…" : mode === "comparison" && selected.length < 2 ? "Choose two documents to compare" : "Create study material"}</button>
+      </div>
+      {error && <p className="query-error">{error}</p>}
+      {result && <article className={`study-result ${result.status}`}>
+        <div className="answer-card-top"><span>{result.title.toUpperCase()}</span>{result.model && <small>{result.model} • local</small>}</div>
+        {result.mode === "flashcards" && result.flashcards.length ? <FlashcardDeck cards={result.flashcards} /> : result.mode === "quiz" && result.quiz_questions.length ? <QuizActivity questions={result.quiz_questions} /> : <CleanStudyContent content={result.content} />}
+        {result.citations.length ? <SourceList citations={result.citations} /> : <small>{result.message}</small>}
+        {result.status === "ok" && <button className="evidence-toggle" type="button" onClick={download}>Download as Markdown</button>}
+      </article>}
+    </> : <div className="library-empty"><h2>Your Library is empty</h2><p>Upload and index a document before creating study material.</p></div>}
+  </section>;
 }
 
 function FlashcardDeck({ cards }: { cards: Flashcard[] }) {

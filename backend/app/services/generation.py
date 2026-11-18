@@ -38,6 +38,12 @@ class OllamaClient:
         request_data: dict[str, object] = {"model": self.model, "prompt": prompt, "stream": False}
         if json_mode:
             request_data["format"] = "json"
+            # Ten-item activities need enough output space to finish their JSON.
+            # A low temperature also makes the compact schema more repeatable.
+            request_data["options"] = {
+                "num_predict": settings.structured_generation_max_tokens,
+                "temperature": settings.structured_generation_temperature,
+            }
         payload = json.dumps(request_data).encode("utf-8")
         request = Request(
             f"{self.base_url}/api/generate",

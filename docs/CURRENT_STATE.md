@@ -26,6 +26,10 @@ Phase 4 was committed as `f4ab175`, Phase 5 as `f0694dd`, and Phase 6 as `90c850
 
 The activity generator now makes one local, evidence-preserving retry when Qwen returns malformed flashcard or quiz JSON. This prevents transient structured-output failures from immediately surfacing as a 502; a user-safe error is returned only after two invalid attempts.
 
+For the expo-ready activity experience, quizzes require exactly 10 generated items, while flashcards return 6-10 cards. Flashcard answers must be concise and under 30 words; overlong answers are compacted locally while short, clear answers are accepted. Structured generation reserves 2,048 output tokens at temperature 0.2 to reduce incomplete local-model responses.
+
+The expo UI cleanup removes the unused Analytics tab and sidebar status card. Study results now display clean plain text even when a local model returns legacy Markdown, and repeated source filenames are grouped by document with a supporting-passage count.
+
 ## Recently changed source areas
 
 - `backend/app/api/documents.py`

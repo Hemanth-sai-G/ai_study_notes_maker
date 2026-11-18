@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "qwen2.5:3b"
     ollama_timeout_seconds: int = 120
+    structured_generation_max_tokens: int = 2_048
+    structured_generation_temperature: float = 0.2
 
     @property
     def uploads_dir(self) -> Path:
