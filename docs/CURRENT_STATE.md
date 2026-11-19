@@ -30,6 +30,8 @@ For the expo-ready activity experience, quizzes require exactly 10 generated ite
 
 The expo UI cleanup removes the unused Analytics tab and sidebar status card. Study results now display clean plain text even when a local model returns legacy Markdown, and repeated source filenames are grouped by document with a supporting-passage count.
 
+Generated study material now supports browser-local text downloads and local PDF downloads. The FastAPI PDF endpoint creates the document in memory with ReportLab and streams it to the browser without persisting generated content.
+
 ## Recently changed source areas
 
 - `backend/app/api/documents.py`

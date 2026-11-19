@@ -9,6 +9,7 @@
 .study-content-point { position:relative; padding-left:15px; }
 .study-content-point::before { content:"•"; position:absolute; left:1px; color:#6f8b44; }
 .study-content-space { height:5px; }
+.export-actions { display:flex; gap:16px; align-items:center; }
 * { box-sizing: border-box; } body { margin: 0; min-width: 320px; } button { font: inherit; cursor: pointer; }
 .app-shell { min-height: 100vh; display: flex; background: #f7f8f4; }
 .sidebar { width: 258px; min-height: 100vh; padding: 25px 16px 18px; background: #102522; color: #eaf1eb; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }

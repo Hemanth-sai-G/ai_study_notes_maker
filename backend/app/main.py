@@ -8,6 +8,7 @@ from app.api.documents import router as documents_router
 from app.api.retrieval import router as retrieval_router
 from app.api.chat import router as chat_router
 from app.api.study_tools import router as study_tools_router
+from app.api.exports import router as exports_router
 from app.core.config import settings
 
 
@@ -39,3 +40,4 @@ app.include_router(documents_router, prefix=settings.api_prefix)
 app.include_router(retrieval_router, prefix=settings.api_prefix)
 app.include_router(chat_router, prefix=settings.api_prefix)
 app.include_router(study_tools_router, prefix=settings.api_prefix)
+app.include_router(exports_router, prefix=settings.api_prefix)

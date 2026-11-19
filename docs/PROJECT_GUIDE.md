@@ -293,6 +293,7 @@ Ollama is running locally and `qwen2.5:3b` is installed. On a new machine, insta
 - Study notes, summaries, explanations, and comparisons now request plain text rather than Markdown. The result view also removes any legacy Markdown markers before display, so headings and points remain readable without visible `#` or `*` symbols.
 - Verified sources are grouped by document in the result view. The interface shows the number of supporting passages instead of repeating the same filename for every retrieved chunk, while the backend keeps the complete provenance metadata.
 - The unused Analytics navigation item and redundant sidebar local-status card were removed for a cleaner expo presentation.
+- Generated study material can be downloaded as plain text (`.txt`) directly in the browser or as a local PDF. The PDF is created in memory by FastAPI and includes the material plus verified sources; it is sent directly to the browser and is not stored on disk.
 - A live flashcard test succeeded with the installed local Qwen model and an indexed proposal PDF: it returned eight verified citations. No study data left the device.
 
 ### Phase 6: files to know

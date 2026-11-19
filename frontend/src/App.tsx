@@ -55,6 +55,24 @@ function CleanStudyContent({ content }: { content: string }) {
   })}</div>;
 }
 
+function exportStudyContent(result: StudyResponse) {
+  const body = result.mode === "flashcards"
+    ? result.flashcards.map((card, index) => `Flashcard ${index + 1}\nQuestion: ${card.question}\nAnswer: ${card.answer}`).join("\n\n")
+    : result.mode === "quiz"
+      ? result.quiz_questions.map((question, index) => `${index + 1}. ${question.question}\n${question.options.map((option, optionIndex) => `   ${"ABCD"[optionIndex]}. ${option}`).join("\n")}\nAnswer: ${"ABCD"[question.correct_option]}\nExplanation: ${question.explanation}`).join("\n\n")
+      : cleanStudyText(result.content);
+  const sources = Array.from(new Set(result.citations.map((citation) => `${citation.document_name}${citation.page_or_slide ? ` (${citation.file_type === "PPTX" ? "Slide" : "Page"} ${citation.page_or_slide})` : ""}`)));
+  return `${result.title}\n\n${body}${sources.length ? `\n\nVerified sources\n${sources.map((source) => `- ${source}`).join("\n")}` : ""}`;
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
 function App() {
   const [status, setStatus] = useState<ApiStatus>("checking");
   const [activeNav, setActiveNav] = useState<NavItem>("Workspace");
@@ -107,6 +125,7 @@ function StudyTools({ documents, initialMode }: { documents: StudyDocument[]; in
   const [topic, setTopic] = useState("");
   const [result, setResult] = useState<StudyResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const minimumDocuments = mode === "comparison" ? 2 : 1;
   const modeGuidance = mode === "comparison"
@@ -116,6 +135,14 @@ function StudyTools({ documents, initialMode }: { documents: StudyDocument[]; in
       : mode === "quiz"
         ? "Creates exactly 10 multiple-choice questions."
         : "Hold Ctrl to choose several documents.";
+  const createLabel: Record<StudyMode, string> = {
+    notes: "Create study notes",
+    summary: "Create summary",
+    explanation: "Create concept explanation",
+    flashcards: "Create flashcards",
+    quiz: "Create quiz",
+    comparison: "Compare documents",
+  };
 
   const generate = async () => {
     if (!selected.length) {
@@ -144,20 +171,31 @@ function StudyTools({ documents, initialMode }: { documents: StudyDocument[]; in
     setSelected(Array.from(event.target.selectedOptions, (option) => option.value));
   };
 
-  const download = () => {
+  const downloadText = () => {
     if (!result || result.status !== "ok") return;
-    const sources = Array.from(new Set(result.citations.map((citation) => `- ${citation.document_name}${citation.page_or_slide ? ` (${citation.file_type === "PPTX" ? "Slide" : "Page"} ${citation.page_or_slide})` : ""}`))).join("\n");
-    const body = result.mode === "flashcards"
-      ? result.flashcards.map((card) => `Q: ${card.question}\nA: ${card.answer}`).join("\n\n")
-      : result.mode === "quiz"
-        ? result.quiz_questions.map((question, index) => `${index + 1}. ${question.question}\n${question.options.map((option, optionIndex) => `   ${"ABCD"[optionIndex]}. ${option}`).join("\n")}\nAnswer: ${"ABCD"[question.correct_option]}\nExplanation: ${question.explanation}`).join("\n\n")
-        : cleanStudyText(result.content);
-    const blob = new Blob([`# ${result.title}\n\n${body}\n\n## Verified sources\n${sources}\n`], { type: "text/markdown" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${result.mode}-study-material.md`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    downloadBlob(new Blob([exportStudyContent(result)], { type: "text/plain;charset=utf-8" }), `${result.mode}-study-material.txt`);
+  };
+
+  const downloadPdf = async () => {
+    if (!result || result.status !== "ok") return;
+    setExportingPdf(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/v1/exports/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: result.title, content: exportStudyContent(result), citations: result.citations }),
+      });
+      if (!response.ok) {
+        const data: { detail?: string } = await response.json();
+        throw new Error(data.detail ?? "PDF export could not be created.");
+      }
+      downloadBlob(await response.blob(), `${result.mode}-study-material.pdf`);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "PDF export could not be created.");
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   return <section className="study-tools-page">
@@ -167,14 +205,14 @@ function StudyTools({ documents, initialMode }: { documents: StudyDocument[]; in
         <label>Study mode<select value={mode} onChange={(event) => { setMode(event.target.value as StudyMode); setResult(null); setError(null); }}><option value="notes">Study notes</option><option value="summary">Summary</option><option value="explanation">Concept explanation</option><option value="flashcards">Flashcards</option><option value="quiz">Quiz</option><option value="comparison">Document comparison</option></select></label>
         <label>Library documents <select multiple value={selected} onChange={updateSelection} size={Math.min(5, Math.max(2, documents.length))}>{documents.filter((document) => document.indexing_status === "indexed").map((document) => <option key={document.id} value={document.id}>{document.original_name}</option>)}</select><small>{modeGuidance}</small></label>
         <label>Optional topic<input value={topic} onChange={(event) => setTopic(event.target.value)} placeholder="e.g. mitosis or key formulas" /></label>
-        <button className="primary-button" type="button" disabled={loading || selected.length < minimumDocuments} onClick={() => void generate()}>{loading ? "Creating locally…" : mode === "comparison" && selected.length < 2 ? "Choose two documents to compare" : "Create study material"}</button>
+        <button className="primary-button" type="button" disabled={loading || selected.length < minimumDocuments} onClick={() => void generate()}>{loading ? "Creating locally…" : mode === "comparison" && selected.length < 2 ? "Choose two documents to compare" : createLabel[mode]}</button>
       </div>
       {error && <p className="query-error">{error}</p>}
       {result && <article className={`study-result ${result.status}`}>
         <div className="answer-card-top"><span>{result.title.toUpperCase()}</span>{result.model && <small>{result.model} • local</small>}</div>
         {result.mode === "flashcards" && result.flashcards.length ? <FlashcardDeck cards={result.flashcards} /> : result.mode === "quiz" && result.quiz_questions.length ? <QuizActivity questions={result.quiz_questions} /> : <CleanStudyContent content={result.content} />}
         {result.citations.length ? <SourceList citations={result.citations} /> : <small>{result.message}</small>}
-        {result.status === "ok" && <button className="evidence-toggle" type="button" onClick={download}>Download as Markdown</button>}
+        {result.status === "ok" && <div className="export-actions"><button className="evidence-toggle" type="button" onClick={downloadText}>Download text</button><button className="evidence-toggle" type="button" disabled={exportingPdf} onClick={() => void downloadPdf()}>{exportingPdf ? "Creating PDF…" : "Download PDF"}</button></div>}
       </article>}
     </> : <div className="library-empty"><h2>Your Library is empty</h2><p>Upload and index a document before creating study material.</p></div>}
   </section>;
